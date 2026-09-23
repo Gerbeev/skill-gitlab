@@ -10,9 +10,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .adapters import ADAPTERS, language, parse
-from .git import content, repository_id, snapshot
+from .git import batch_blobs, content, repository_id, snapshot
 from .models import ADAPTER_VERSION, SCHEMA_VERSION, FileRecord, ParsedFile, RepositoryState, record
-from .safety import EngineError, write_json
+from .safety import EngineError, validate_output, write_json
 from .storage import Store
 
 EXCLUDED = {".git", ".obsidian", ".repository-analysis", ".mr-analysis", "node_modules", "vendor", ".venv",
@@ -77,6 +77,7 @@ def _export_array(path, rows):
     import os
     import tempfile
     from .safety import redact
+    validate_output(path)
     if path.is_symlink():
         raise EngineError("Refusing symlink export")
     fd, temp = tempfile.mkstemp(prefix=".export-", dir=path.parent)
@@ -117,6 +118,7 @@ def build_index(root: Path, cache: Path | None = None, mode="deep", ref="HEAD", 
     if len(selected) > config.max_files:
         raise EngineError("Repository exceeds configured file limit")
     directory = index_dir(root, cache, slot)
+    validate_output(directory)
     directory.mkdir(parents=True, exist_ok=True)
     stats = {"files_discovered": len(entries), "files_parsed": 0, "files_reused": 0,
              "files_skipped": len(entries) - len(selected), "files_deleted": 0, "warnings": []}
@@ -141,21 +143,40 @@ def build_index(root: Path, cache: Path | None = None, mode="deep", ref="HEAD", 
                     pending.append((path, entry))
 
             def extract(item):
-                path, entry = item
+                path, entry, payload = item
                 if entry[1] > config.max_file_bytes:
                     return path, entry, ParsedFile(warnings=[f"Oversized file skipped: {path}"]), True
                 try:
-                    text = content(root, path, entry, config.max_file_bytes)
+                    if payload is not None:
+                        if b"\0" in payload:
+                            raise EngineError("Binary file skipped")
+                        text = payload.decode("utf-8-sig", errors="replace")
+                    else:
+                        text = content(root, path, entry, config.max_file_bytes)
                 except EngineError as exc:
                     if "Binary" in str(exc):
                         return path, entry, ParsedFile(warnings=[f"Binary file skipped: {path}"]), True
                     raise
                 return path, entry, parse(path, text, mode, commit, config.adapters), False
 
-            # Batches cap outstanding work and parsed data independently of repository size.
+            # Byte and count bounds cap in-flight blobs and parsed records.
+            def batches():
+                batch, size = [], 0
+                for item in pending:
+                    item_size = min(item[1][1], config.max_file_bytes)
+                    if batch and (len(batch) >= 64 or size + item_size > max(8_000_000, config.max_file_bytes)):
+                        yield batch
+                        batch, size = [], 0
+                    batch.append(item)
+                    size += item_size
+                if batch:
+                    yield batch
+
             with ThreadPoolExecutor(max_workers=config.workers) as pool:
-                for offset in range(0, len(pending), config.workers * 4):
-                    for path, entry, parsed, skipped in pool.map(extract, pending[offset:offset + config.workers * 4]):
+                for batch in batches():
+                    payloads = batch_blobs(root, batch, config.max_file_bytes)
+                    inputs = [(path, entry, payloads.get(path)) for path, entry in batch]
+                    for path, entry, parsed, skipped in pool.map(extract, inputs):
                         store.put(FileRecord(path, entry[0], entry[1], language(path)), parsed)
                         stats["files_skipped" if skipped else "files_parsed"] += 1
             store.cleanup()

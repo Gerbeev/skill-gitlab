@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 
 from .indexing import boundary_rows
-from .safety import EngineError, write_json
+from .safety import EngineError, validate_output, write_json
 from .storage import Store
 
 CATALOG_DDL = """
@@ -21,6 +21,7 @@ CREATE INDEX IF NOT EXISTS repository_dependencies ON dependencies(repository);
 
 
 def connect(path):
+    validate_output(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.is_symlink():
         raise EngineError("Refusing symlink catalog")
@@ -69,11 +70,30 @@ def lookup(catalog: Path, entity: str, confidence=30, limit=20, exclude=()):
     try:
         placeholders = ",".join("?" for _ in exclude) or "NULL"
         exclusion = f"AND r.id NOT IN ({placeholders})" if exclude else ""
-        rows = db.execute(f"""SELECT d.*,r.root,r.directory,r.commit_id,r.fingerprint
+        rows = db.execute(f"""WITH matches AS (
+                              SELECT d.*,r.root,r.directory,r.commit_id,r.fingerprint,
+                              ROW_NUMBER() OVER (PARTITION BY r.id ORDER BY d.confidence DESC,d.role,d.source) priority
                               FROM dependencies d JOIN repositories r ON d.repository=r.id
-                              WHERE d.entity=? AND d.confidence>=? {exclusion}
-                              ORDER BY d.confidence DESC,r.id,d.role,d.source LIMIT ?""",
+                              WHERE d.entity=? AND d.confidence>=? {exclusion})
+                              SELECT * FROM matches WHERE priority=1
+                              ORDER BY confidence DESC,repository LIMIT ?""",
                           (entity, confidence, *exclude, limit))
         return [dict(row) | {"evidence": json.loads(row["evidence"])} for row in rows]
+    finally:
+        db.close()
+
+
+def repository_matches(catalog: Path, repository: str, entities: list[str], confidence=30):
+    """Return one evidence-backed observation per reached boundary for a candidate."""
+    db = sqlite3.connect(f"{catalog.resolve().as_uri()}?mode=ro", uri=True)
+    db.row_factory = sqlite3.Row
+    try:
+        matches = []
+        for entity in entities:
+            row = db.execute("""SELECT * FROM dependencies WHERE repository=? AND entity=? AND confidence>=?
+                               ORDER BY confidence DESC,role,source LIMIT 1""", (repository, entity, confidence)).fetchone()
+            if row:
+                matches.append(dict(row) | {"evidence": json.loads(row["evidence"])})
+        return matches
     finally:
         db.close()

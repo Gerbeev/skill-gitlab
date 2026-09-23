@@ -24,7 +24,7 @@ class WorkflowTests(unittest.TestCase):
         initialize(self.b, "repo-b")
         initialize(self.c, "repo-c")
         path = self.a / "src/RiskWriter.scala"
-        path.write_text(path.read_text().replace('    val query', '    require(amount >= 0, "Negative exposure")\n    val query'))
+        path.write_text(path.read_text().replace('    val query', '    require(amount >= 0, "Negative exposure")\n    val query'), newline="\n")
         self.head = commit(self.a)
         self.cache, self.out = self.work / "cache", self.work / "analysis"
         self.catalog = self.work / "organization.sqlite"
@@ -107,3 +107,40 @@ class WorkflowTests(unittest.TestCase):
         patch.write_text('--- a/src/RiskWriter.scala\n+++ b/src/RiskWriter.scala\n@@ -1 +1 @@\n-old\n+not the indexed head\n')
         with self.assertRaises(EngineError):
             analyze_mr(self.a, self.out, patch=patch, cache=self.cache)
+
+    def test_stale_catalog_is_visible_and_snapshot_is_preserved(self):
+        boundary = build_index(self.b, self.cache, "boundary")
+        aggregate(self.catalog, [Path(boundary["directory"])])
+        path = self.b / "jobs/report.jil"
+        path.write_text(path.read_text().replace("REPORT_GENERATION_EOD", "RENAMED_JOB"))
+        commit(self.b)
+        analyze_mr(self.a, self.out, self.base, cache=self.cache, catalog=self.catalog)
+        context = json.loads((self.out / "mr-context.json").read_text())
+        self.assertTrue(any("Stale catalog" in warning for warning in context["warnings"]))
+        targets = json.loads((self.out / "runtime-impact.json").read_text())["targets"]
+        self.assertTrue(any(t["target"] == "REPORT_GENERATION_EOD" and t["confidence"] <= 60 for t in targets))
+
+    def test_interpretation_and_preview_integrity(self):
+        analyze_mr(self.a, self.out, self.base, cache=self.cache)
+        context = json.loads((self.out / "mr-context.json").read_text())
+        plan = {"head": context["head"], "diff_sha256": context["diff_sha256"], "findings": [{
+            "change_index": 0, "hunk_index": 0, "classification": "confirmed", "summary": "A nonnegative guard precedes the query.",
+            "validation": "Test -1, 0, and 1 in daily-risk."}]}
+        path = self.work / "interpretation.json"
+        path.write_text(json.dumps(plan))
+        analyze_mr(self.a, self.out, self.base, cache=self.cache, interpretation=path)
+        self.assertIn("Test -1, 0, and 1", (self.out / "04-test-plan.md").read_text())
+        issue = self.work / "issue.md"
+        issue.write_text("# Issue\nExisting contract.\n")
+        (self.out / "01-mr-analysis.md").write_text("Tampered summary")
+        with self.assertRaises(EngineError):
+            update_issue(issue, self.out, self.out)
+        plan["diff_sha256"] = "stale"
+        path.write_text(json.dumps(plan))
+        with self.assertRaises(EngineError):
+            analyze_mr(self.a, self.out, self.base, cache=self.cache, interpretation=path)
+
+    def test_uncommitted_catalog_snapshot_rejected(self):
+        boundary = build_index(self.b, self.cache, "boundary", worktree=True)
+        with self.assertRaises(EngineError):
+            aggregate(self.catalog, [Path(boundary["directory"])])

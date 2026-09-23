@@ -1,0 +1,852 @@
+{
+  "targets": [
+    {
+      "target": "daily-risk",
+      "type": "DATABRICKS_JOB",
+      "repository": "repo-a-5ed2cf86b6eb",
+      "impact": "TRANSITIVELY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "file://src/RiskWriter.scala",
+          "to": "databricks-job://daily-risk/task/calculate",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "databricks.yml",
+            "start_line": 8,
+            "end_line": 8,
+            "detector": "path-reference",
+            "confidence": 90,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "databricks-job://daily-risk/task/calculate",
+          "to": "databricks-job://daily-risk",
+          "type": "CONTAINS",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "databricks.yml",
+            "start_line": 6,
+            "end_line": 6,
+            "detector": "config-resources",
+            "confidence": 90,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        }
+      ],
+      "confidence": 90,
+      "execute": "Run or validate DATABRICKS_JOB daily-risk in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of daily-risk against its documented contract."
+      ],
+      "entity": "databricks-job://daily-risk"
+    },
+    {
+      "target": "daily-risk/calculate",
+      "type": "DATABRICKS_TASK",
+      "repository": "repo-a-5ed2cf86b6eb",
+      "impact": "DIRECTLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "file://src/RiskWriter.scala",
+          "to": "databricks-job://daily-risk/task/calculate",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "databricks.yml",
+            "start_line": 8,
+            "end_line": 8,
+            "detector": "path-reference",
+            "confidence": 90,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        }
+      ],
+      "confidence": 90,
+      "execute": "Run or validate DATABRICKS_TASK daily-risk/calculate in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of daily-risk/calculate against its documented contract."
+      ],
+      "entity": "databricks-job://daily-risk/task/calculate"
+    },
+    {
+      "target": "DAILY_RISK_JOB",
+      "type": "AUTOSYS_JOB",
+      "repository": "repo-a-5ed2cf86b6eb",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "file://src/RiskWriter.scala",
+          "to": "file://scripts/run_risk.py",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/run_risk.py",
+            "start_line": 2,
+            "end_line": 2,
+            "detector": "path-reference",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "file://scripts/run_risk.py",
+          "to": "autosys://DAILY_RISK_JOB",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 100,
+          "evidence": {
+            "file": "jobs/risk.jil",
+            "start_line": 4,
+            "end_line": 4,
+            "detector": "path-reference",
+            "confidence": 100,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate AUTOSYS_JOB DAILY_RISK_JOB in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of DAILY_RISK_JOB against its documented contract."
+      ],
+      "entity": "autosys://DAILY_RISK_JOB"
+    },
+    {
+      "target": "RISK_EOD_BOX",
+      "type": "AUTOSYS_BOX",
+      "repository": "repo-a-5ed2cf86b6eb",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "file://src/RiskWriter.scala",
+          "to": "file://scripts/run_risk.py",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/run_risk.py",
+            "start_line": 2,
+            "end_line": 2,
+            "detector": "path-reference",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "file://scripts/run_risk.py",
+          "to": "autosys://DAILY_RISK_JOB",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 100,
+          "evidence": {
+            "file": "jobs/risk.jil",
+            "start_line": 4,
+            "end_line": 4,
+            "detector": "path-reference",
+            "confidence": 100,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "autosys://DAILY_RISK_JOB",
+          "to": "autosys://RISK_EOD_BOX",
+          "type": "CONTAINS",
+          "direction": "reverse",
+          "confidence": 100,
+          "evidence": {
+            "file": "jobs/risk.jil",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "autosys-jil",
+            "confidence": 100,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate AUTOSYS_BOX RISK_EOD_BOX in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of RISK_EOD_BOX against its documented contract."
+      ],
+      "entity": "autosys://RISK_EOD_BOX"
+    },
+    {
+      "target": "scripts/run_risk.py",
+      "type": "SCRIPT",
+      "repository": "repo-a-5ed2cf86b6eb",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "file://src/RiskWriter.scala",
+          "to": "file://scripts/run_risk.py",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/run_risk.py",
+            "start_line": 2,
+            "end_line": 2,
+            "detector": "path-reference",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate SCRIPT scripts/run_risk.py in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of scripts/run_risk.py against its documented contract."
+      ],
+      "entity": "file://scripts/run_risk.py"
+    },
+    {
+      "target": "REPORT_EOD_BOX",
+      "type": "AUTOSYS_BOX",
+      "repository": "repo-b-e8f46c259389",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "symbol://src/RiskWriter.scala::writeExposure:4",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "WRITES",
+          "direction": "forward",
+          "confidence": 60,
+          "evidence": {
+            "file": "src/RiskWriter.scala",
+            "start_line": 6,
+            "end_line": 6,
+            "detector": "sql-lexical",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "ORGANIZATION_LOOKUP",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          },
+          "repository": "repo-b-e8f46c259389",
+          "catalog_commit": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "oracle://REPORTING/GENERATE_REPORT",
+          "type": "READS",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "oracle://REPORTING/GENERATE_REPORT",
+          "to": "file://sql/report.sql",
+          "type": "DEFINES",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 1,
+            "end_line": 1,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "file://sql/report.sql",
+          "to": "file://scripts/report.sh",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/report.sh",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "path-reference",
+            "confidence": 60,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "file://scripts/report.sh",
+          "to": "autosys://REPORT_GENERATION_EOD",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 100,
+          "evidence": {
+            "file": "jobs/report.jil",
+            "start_line": 4,
+            "end_line": 4,
+            "detector": "path-reference",
+            "confidence": 100,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "autosys://REPORT_GENERATION_EOD",
+          "to": "autosys://REPORT_EOD_BOX",
+          "type": "CONTAINS",
+          "direction": "reverse",
+          "confidence": 100,
+          "evidence": {
+            "file": "jobs/report.jil",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "autosys-jil",
+            "confidence": 100,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate AUTOSYS_BOX REPORT_EOD_BOX in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of REPORT_EOD_BOX against its documented contract.",
+        "Compare affected data and downstream consumption for table://RISK/DAILY_EXPOSURE."
+      ],
+      "entity": "autosys://REPORT_EOD_BOX"
+    },
+    {
+      "target": "REPORT_GENERATION_EOD",
+      "type": "AUTOSYS_JOB",
+      "repository": "repo-b-e8f46c259389",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "symbol://src/RiskWriter.scala::writeExposure:4",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "WRITES",
+          "direction": "forward",
+          "confidence": 60,
+          "evidence": {
+            "file": "src/RiskWriter.scala",
+            "start_line": 6,
+            "end_line": 6,
+            "detector": "sql-lexical",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "ORGANIZATION_LOOKUP",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          },
+          "repository": "repo-b-e8f46c259389",
+          "catalog_commit": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "oracle://REPORTING/GENERATE_REPORT",
+          "type": "READS",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "oracle://REPORTING/GENERATE_REPORT",
+          "to": "file://sql/report.sql",
+          "type": "DEFINES",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 1,
+            "end_line": 1,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "file://sql/report.sql",
+          "to": "file://scripts/report.sh",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/report.sh",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "path-reference",
+            "confidence": 60,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "file://scripts/report.sh",
+          "to": "autosys://REPORT_GENERATION_EOD",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 100,
+          "evidence": {
+            "file": "jobs/report.jil",
+            "start_line": 4,
+            "end_line": 4,
+            "detector": "path-reference",
+            "confidence": 100,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate AUTOSYS_JOB REPORT_GENERATION_EOD in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of REPORT_GENERATION_EOD against its documented contract.",
+        "Compare affected data and downstream consumption for table://RISK/DAILY_EXPOSURE."
+      ],
+      "entity": "autosys://REPORT_GENERATION_EOD"
+    },
+    {
+      "target": "reporting.generate_report",
+      "type": "DB_PROCEDURE",
+      "repository": "repo-b-e8f46c259389",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "symbol://src/RiskWriter.scala::writeExposure:4",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "WRITES",
+          "direction": "forward",
+          "confidence": 60,
+          "evidence": {
+            "file": "src/RiskWriter.scala",
+            "start_line": 6,
+            "end_line": 6,
+            "detector": "sql-lexical",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "ORGANIZATION_LOOKUP",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          },
+          "repository": "repo-b-e8f46c259389",
+          "catalog_commit": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "oracle://REPORTING/GENERATE_REPORT",
+          "type": "READS",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate DB_PROCEDURE reporting.generate_report in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of reporting.generate_report against its documented contract.",
+        "Compare affected data and downstream consumption for table://RISK/DAILY_EXPOSURE."
+      ],
+      "entity": "oracle://REPORTING/GENERATE_REPORT"
+    },
+    {
+      "target": "scripts/report.sh",
+      "type": "SCRIPT",
+      "repository": "repo-b-e8f46c259389",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "symbol://src/RiskWriter.scala::writeExposure:4",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "WRITES",
+          "direction": "forward",
+          "confidence": 60,
+          "evidence": {
+            "file": "src/RiskWriter.scala",
+            "start_line": 6,
+            "end_line": 6,
+            "detector": "sql-lexical",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "ORGANIZATION_LOOKUP",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          },
+          "repository": "repo-b-e8f46c259389",
+          "catalog_commit": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "oracle://REPORTING/GENERATE_REPORT",
+          "type": "READS",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "oracle://REPORTING/GENERATE_REPORT",
+          "to": "file://sql/report.sql",
+          "type": "DEFINES",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 1,
+            "end_line": 1,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "file://sql/report.sql",
+          "to": "file://scripts/report.sh",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/report.sh",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "path-reference",
+            "confidence": 60,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate SCRIPT scripts/report.sh in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of scripts/report.sh against its documented contract.",
+        "Compare affected data and downstream consumption for table://RISK/DAILY_EXPOSURE."
+      ],
+      "entity": "file://scripts/report.sh"
+    },
+    {
+      "target": "REGULATORY_EXPORT_JOB",
+      "type": "AUTOSYS_JOB",
+      "repository": "repo-c-e118f59fb4bf",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "symbol://src/RiskWriter.scala::writeExposure:4",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "WRITES",
+          "direction": "forward",
+          "confidence": 60,
+          "evidence": {
+            "file": "src/RiskWriter.scala",
+            "start_line": 6,
+            "end_line": 6,
+            "detector": "sql-lexical",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "ORGANIZATION_LOOKUP",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          },
+          "repository": "repo-b-e8f46c259389",
+          "catalog_commit": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "oracle://REPORTING/GENERATE_REPORT",
+          "type": "READS",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "oracle://REPORTING/GENERATE_REPORT",
+          "to": "file://sql/report.sql",
+          "type": "DEFINES",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 1,
+            "end_line": 1,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "file://sql/report.sql",
+          "to": "file://scripts/report.sh",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/report.sh",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "path-reference",
+            "confidence": 60,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "file://scripts/report.sh",
+          "to": "autosys://REPORT_GENERATION_EOD",
+          "type": "EXECUTES",
+          "direction": "reverse",
+          "confidence": 100,
+          "evidence": {
+            "file": "jobs/report.jil",
+            "start_line": 4,
+            "end_line": 4,
+            "detector": "path-reference",
+            "confidence": 100,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "autosys://REPORT_GENERATION_EOD",
+          "to": "autosys://REPORT_GENERATION_EOD",
+          "type": "ORGANIZATION_LOOKUP",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "jobs/export.jil",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "autosys-jil",
+            "confidence": 100,
+            "revision": "c7fb9d383730f1e52bfe7a550743dc83a5a21c47"
+          },
+          "repository": "repo-c-e118f59fb4bf",
+          "catalog_commit": "c7fb9d383730f1e52bfe7a550743dc83a5a21c47"
+        },
+        {
+          "from": "autosys://REPORT_GENERATION_EOD",
+          "to": "autosys://REGULATORY_EXPORT_JOB",
+          "type": "DEPENDS_ON",
+          "direction": "reverse",
+          "confidence": 100,
+          "evidence": {
+            "file": "jobs/export.jil",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "autosys-jil",
+            "confidence": 100,
+            "revision": "c7fb9d383730f1e52bfe7a550743dc83a5a21c47"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate AUTOSYS_JOB REGULATORY_EXPORT_JOB in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of REGULATORY_EXPORT_JOB against its documented contract.",
+        "Compare affected data and downstream consumption for table://RISK/DAILY_EXPOSURE.",
+        "Verify the recorded scheduler dependency and downstream start/completion behavior."
+      ],
+      "entity": "autosys://REGULATORY_EXPORT_JOB"
+    },
+    {
+      "target": "scripts/export.ps1",
+      "type": "SCRIPT",
+      "repository": "repo-c-e118f59fb4bf",
+      "impact": "POTENTIALLY_AFFECTED",
+      "reason": "Dependency path connects an MR change to this operational definition.",
+      "path": [
+        {
+          "from": "symbol://src/RiskWriter.scala::writeExposure:4",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "WRITES",
+          "direction": "forward",
+          "confidence": 60,
+          "evidence": {
+            "file": "src/RiskWriter.scala",
+            "start_line": 6,
+            "end_line": 6,
+            "detector": "sql-lexical",
+            "confidence": 60,
+            "revision": "1e2e8bcf21df73dbd8752adb47b4cdba70479131"
+          }
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "table://RISK/DAILY_EXPOSURE",
+          "type": "ORGANIZATION_LOOKUP",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          },
+          "repository": "repo-b-e8f46c259389",
+          "catalog_commit": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+        },
+        {
+          "from": "table://RISK/DAILY_EXPOSURE",
+          "to": "oracle://REPORTING/GENERATE_REPORT",
+          "type": "READS",
+          "direction": "reverse",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 3,
+            "end_line": 3,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "oracle://REPORTING/GENERATE_REPORT",
+          "to": "table://REPORTING/DAILY_REPORT",
+          "type": "WRITES",
+          "direction": "forward",
+          "confidence": 90,
+          "evidence": {
+            "file": "sql/report.sql",
+            "start_line": 4,
+            "end_line": 4,
+            "detector": "sql-lexical",
+            "confidence": 90,
+            "revision": "a2ba0280f078321c5dce237344fdd521bd9ff72b"
+          }
+        },
+        {
+          "from": "table://REPORTING/DAILY_REPORT",
+          "to": "table://REPORTING/DAILY_REPORT",
+          "type": "ORGANIZATION_LOOKUP",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/export.ps1",
+            "start_line": 2,
+            "end_line": 2,
+            "detector": "sql-lexical",
+            "confidence": 60,
+            "revision": "c7fb9d383730f1e52bfe7a550743dc83a5a21c47"
+          },
+          "repository": "repo-c-e118f59fb4bf",
+          "catalog_commit": "c7fb9d383730f1e52bfe7a550743dc83a5a21c47"
+        },
+        {
+          "from": "table://REPORTING/DAILY_REPORT",
+          "to": "file://scripts/export.ps1",
+          "type": "READS",
+          "direction": "reverse",
+          "confidence": 60,
+          "evidence": {
+            "file": "scripts/export.ps1",
+            "start_line": 2,
+            "end_line": 2,
+            "detector": "sql-lexical",
+            "confidence": 60,
+            "revision": "c7fb9d383730f1e52bfe7a550743dc83a5a21c47"
+          }
+        }
+      ],
+      "confidence": 60,
+      "execute": "Run or validate SCRIPT scripts/export.ps1 in the approved QA environment.",
+      "verify": [
+        "Verify completion and inspect the output of scripts/export.ps1 against its documented contract.",
+        "Compare affected data and downstream consumption for table://REPORTING/DAILY_REPORT, table://RISK/DAILY_EXPOSURE."
+      ],
+      "entity": "file://scripts/export.ps1"
+    }
+  ]
+}

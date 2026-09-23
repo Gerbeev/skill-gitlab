@@ -6,7 +6,7 @@ from collections import deque
 from pathlib import Path
 
 from .models import Limits, record
-from .safety import EngineError
+from .safety import EngineError, validate_output
 
 DDL = """
 CREATE TABLE IF NOT EXISTS state (key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -37,6 +37,7 @@ CREATE INDEX IF NOT EXISTS edge_file ON edges(file);
 
 class Store:
     def __init__(self, path: Path):
+        validate_output(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.is_symlink():
             raise EngineError("Refusing symlink database")
@@ -103,12 +104,13 @@ class Store:
     def symbols(self, path):
         return [dict(r) for r in self.db.execute("SELECT * FROM symbols WHERE file=? ORDER BY start_line,id", (path,))]
 
-    def traverse(self, seeds: list[str], limits: Limits):
+    def traverse(self, seeds: list[str], limits: Limits, initial_paths=None, initial_confidence=None):
         """Visit dependents in reverse and produced data forward; never walk all imports outward."""
         found, paths, depths, confidence = {}, {}, {}, {}
         queue = deque()
         for seed in sorted(set(seeds))[:limits.max_nodes]:
-            found[seed], paths[seed], depths[seed], confidence[seed] = self.node(seed), [], 0, 100
+            found[seed], paths[seed], depths[seed], confidence[seed] = (
+                self.node(seed), (initial_paths or {}).get(seed, []), 0, (initial_confidence or {}).get(seed, 100))
             queue.append(seed)
         edges, seen_edges, truncated = [], set(), len(set(seeds)) > limits.max_nodes
         forward = {"WRITES", "PRODUCES", "PUBLISHES_EVENT", "DEFINES", "CONTAINS", "TESTED_BY"}

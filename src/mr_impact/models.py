@@ -147,6 +147,7 @@ class RuntimeTarget:
     confidence: int
     execute: str
     verify: list[str]
+    entity: str = ""
 
 
 @dataclass

@@ -1,0 +1,97 @@
+{
+  "initial_indexes": [
+    {
+      "repository": "repo-a-5ed2cf86b6eb",
+      "mode": "deep",
+      "statistics": {
+        "files_discovered": 6,
+        "files_parsed": 6,
+        "files_reused": 0,
+        "files_skipped": 0,
+        "files_deleted": 0,
+        "warnings": [],
+        "nodes_created": 18,
+        "edges_created": 20,
+        "symbols": 4,
+        "boundary_entities": 7,
+        "elapsed_seconds": 0.232
+      }
+    },
+    {
+      "repository": "repo-b-e8f46c259389",
+      "mode": "boundary",
+      "statistics": {
+        "files_discovered": 5,
+        "files_parsed": 5,
+        "files_reused": 0,
+        "files_skipped": 0,
+        "files_deleted": 0,
+        "warnings": [],
+        "nodes_created": 12,
+        "edges_created": 12,
+        "symbols": 0,
+        "boundary_entities": 7,
+        "elapsed_seconds": 0.225
+      }
+    },
+    {
+      "repository": "repo-c-e118f59fb4bf",
+      "mode": "boundary",
+      "statistics": {
+        "files_discovered": 2,
+        "files_parsed": 2,
+        "files_reused": 0,
+        "files_skipped": 0,
+        "files_deleted": 0,
+        "warnings": [],
+        "nodes_created": 5,
+        "edges_created": 5,
+        "symbols": 0,
+        "boundary_entities": 4,
+        "elapsed_seconds": 0.231
+      }
+    }
+  ],
+  "no_op_statistics": {
+    "files_discovered": 6,
+    "files_parsed": 0,
+    "files_reused": 6,
+    "files_skipped": 0,
+    "files_deleted": 0,
+    "warnings": [],
+    "nodes_created": 18,
+    "edges_created": 20,
+    "symbols": 4,
+    "boundary_entities": 7,
+    "elapsed_seconds": 0.139
+  },
+  "organization": {
+    "repositories": 3,
+    "dependencies": 25
+  },
+  "runtime_targets": [
+    "DAILY_RISK_JOB",
+    "REGULATORY_EXPORT_JOB",
+    "REPORT_EOD_BOX",
+    "REPORT_GENERATION_EOD",
+    "RISK_EOD_BOX",
+    "daily-risk",
+    "daily-risk/calculate",
+    "reporting.generate_report",
+    "scripts/export.ps1",
+    "scripts/report.sh",
+    "scripts/run_risk.py"
+  ],
+  "candidate_repositories": 2,
+  "checks": {
+    "two_issue_outputs": true,
+    "template_mutation": true,
+    "deep_index": true,
+    "boundary_indexes": true,
+    "no_op_reuse": true,
+    "changed_symbol_mapping": true,
+    "cross_repository_runtime_paths": true,
+    "issue_update_preview": true
+  },
+  "operational_jobs_executed": false
+}

@@ -16,7 +16,8 @@ def command(root, *args):
 def initialize(root, fixture=None):
     root.mkdir(parents=True, exist_ok=True)
     if fixture:
-        shutil.copytree(ROOT / "tests" / "fixtures" / fixture, root, dirs_exist_ok=True)
+        shutil.copytree(ROOT / "tests" / "fixtures" / fixture, root, dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     command(root, "init", "--quiet")
     command(root, "config", "user.name", "Fixture Author")
     command(root, "config", "user.email", "fixture@example.invalid")

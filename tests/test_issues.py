@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from .helpers import ROOT
-from mr_impact.issues import analyze_issue, template_slots
+from mr_impact.issues import analyze_issue, extract_facts, template_slots
 from mr_impact.safety import EngineError
 
 
@@ -27,6 +27,8 @@ class IssueTests(unittest.TestCase):
         self.assertNotIn("previous successful partition", result.split("## Acceptance Criteria")[1].split("## Constraints")[0])
         self.assertIn("negative, zero, and positive", result)
         self.assertIn("- [ ] Required tests pass", result)
+        self.assertIn("Do not change the reporting schedule.", result.split("**Out of scope / non-goals**")[1].split("## Acceptance Criteria")[0])
+        self.assertNotIn("Do not change the reporting schedule.", result.split("**Desired outcome**")[1].split("## Scope")[0])
 
     def test_explicit_scope_isolation(self):
         scope = self.root / "selected"
@@ -94,6 +96,9 @@ class IssueTests(unittest.TestCase):
         self.assertNotIn("<!--", generated)
         import re
         self.assertEqual(re.findall(r"^#{1,6} .+", template.read_text(), re.M), re.findall(r"^#{1,6} .+", generated, re.M))
+        facts = extract_facts({"issue.md": generated})
+        requirements = [f.text for f in facts if f.kind == "requirement"]
+        self.assertFalse(any("Final implementation matches" in text or text == "--" for text in requirements))
 
     def test_changed_embedded_instruction_with_interpretation(self):
         template = self.root / "GITLAB_ISSUE_TEMPLATE.md"

@@ -2,5 +2,4 @@ insert_job: REPORT_EOD_BOX job_type: b
 insert_job: REPORT_GENERATION_EOD job_type: c
 box_name: REPORT_EOD_BOX
 command: sh scripts/report.sh
-condition: s(DAILY_RISK_JOB)
 machine: qa-reporting

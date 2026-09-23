@@ -7,13 +7,13 @@ from contextlib import ExitStack
 from pathlib import Path
 
 from .adapters import RUNTIME_TYPES
-from .catalog import lookup
+from .catalog import lookup, repository_matches
 from .diff import map_symbols, parse_diff
 from .git import git, repository_id, resolve
 from .indexing import IndexConfig, build_index
 from .issues import extract_facts
 from .models import Limits, RuntimeTarget, record
-from .safety import EngineError, read_text, write_json, write_text
+from .safety import EngineError, read_json, read_text, write_json, write_text
 from .storage import Store
 
 
@@ -41,14 +41,15 @@ def targets_from_graph(graph, repository, prefix=None, cap=100):
             verify.append("Compare affected data and downstream consumption for " + ", ".join(sorted(set(tables))) + ".")
         if any(e["type"] == "DEPENDS_ON" for e in path):
             verify.append("Verify the recorded scheduler dependency and downstream start/completion behavior.")
-        targets.append(record(RuntimeTarget(node["name"], node["type"], repository, impact, reason, path, confidence, execute, verify)))
+        targets.append(record(RuntimeTarget(node["name"], node["type"], repository, impact, reason, path, confidence, execute, verify, node["key"])))
     return targets
 
 
 def _path_text(path):
     if not path:
         return "Changed definition (direct evidence in the diff)."
-    return " -> ".join([path[0]["from"]] + [edge["to"] for edge in path])
+    return " -> ".join([path[0]["from"]] + [
+        f"[{edge['repository']}] {edge['to']}" if edge["type"] == "ORGANIZATION_LOOKUP" else edge["to"] for edge in path])
 
 
 def _classify_file(path):
@@ -85,7 +86,7 @@ def _behavior(changes):
 def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", patch: Path | None = None,
                commit: str | None = None, cache: Path | None = None, catalog: Path | None = None,
                issue: Path | None = None, limits: Limits | None = None, config: IndexConfig | None = None,
-               expand_candidates=True):
+               expand_candidates=True, interpretation: Path | None = None):
     root = root.resolve()
     limits = limits or Limits()
     config = config or IndexConfig()
@@ -136,6 +137,7 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
             old_seeds = [m["symbol"]["id"] for m in mappings if m["side"] == "base"]
             old_seeds += ["file://" + c.old_path for c in changes if c.old_path]
             old_graph = before.traverse(old_seeds, limits)
+            old_graph["confidence"] = {key: min(60, value) for key, value in old_graph["confidence"].items()}
             graphs.append({"repository": repository_id(root), "revision": base_id, "side": "base", **old_graph})
             for target in targets_from_graph(old_graph, repository_id(root), cap=60):
                 target["reason"] = "Before-change dependency: verify removal, compatibility, or migration. " + target["reason"]
@@ -147,18 +149,16 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
         candidates = []
         if catalog:
             seen = {repository_id(root)}
-            frontier = [(group, [], 0) for group in graphs]
+            frontier = [(group, 0) for group in graphs]
             while frontier:
-                local, prefix, depth = frontier.pop(0)
+                local, depth = frontier.pop(0)
                 if depth >= limits.cross_depth:
+                    if any(n["boundary"] for n in local["nodes"]):
+                        warnings.append("Cross-repository depth limit reached; further downstream impact is not explored.")
                     continue
-                for node in local["nodes"]:
-                    if not node["boundary"]:
-                        continue
-                    path = prefix + local["paths"][node["key"]]
-                    path_conf = min([local["confidence"][node["key"]]] + [e["confidence"] for e in prefix])
-                    if path_conf < limits.confidence:
-                        continue
+                boundaries = [n for n in local["nodes"] if n["boundary"] and local["confidence"][n["key"]] >= limits.confidence]
+                for node in boundaries:
+                    path_conf = local["confidence"][node["key"]]
                     remaining = limits.max_candidates - len(candidates)
                     matches = lookup(catalog, node["key"], limits.confidence, max(1, remaining + 1), tuple(seen))
                     for match in matches:
@@ -172,9 +172,6 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
                         candidates.append({"repository": rid, "entity": node["key"], "role": match["role"],
                                            "confidence": min(path_conf, match["confidence"]), "expanded": False,
                                            "catalog_commit": match["commit_id"]})
-                        bridge = {"from": node["key"], "to": f"repository://{rid}/{node['key']}",
-                                  "type": "ORGANIZATION_LOOKUP", "direction": "reverse", "confidence": min(path_conf, match["confidence"]),
-                                  "evidence": match["evidence"], "repository": rid, "catalog_commit": match["commit_id"]}
                         if not expand_candidates:
                             warnings.append(f"Candidate {rid} requires deep expansion to identify runtime targets.")
                             continue
@@ -184,32 +181,51 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
                             continue
                         try:
                             current_head = resolve(candidate_root, "HEAD")
-                            if current_head != match["commit_id"]:
+                            stale = current_head != match["commit_id"]
+                            if stale:
                                 warnings.append(f"Stale catalog candidate {rid}; using recorded revision {match['commit_id']} for reproducibility.")
-                                bridge["confidence"] = min(bridge["confidence"], 60)
+                            shared = repository_matches(catalog, rid, [n["key"] for n in boundaries], limits.confidence)
+                            initial_paths, initial_confidence = {}, {}
+                            for observation in shared:
+                                entity = observation["entity"]
+                                confidence = min(local["confidence"][entity], observation["confidence"], 60 if stale else 100)
+                                bridge = {"from": entity, "to": entity, "type": "ORGANIZATION_LOOKUP",
+                                          "direction": "reverse", "confidence": confidence,
+                                          "evidence": observation["evidence"], "repository": rid,
+                                          "catalog_commit": match["commit_id"]}
+                                initial_paths[entity] = local["paths"][entity] + [bridge]
+                                initial_confidence[entity] = confidence
                             candidate_index = build_index(candidate_root, cache, "deep", match["commit_id"], config=config)
                             with Store(Path(candidate_index["directory"]) / "repository-index.sqlite") as candidate_store:
-                                subgraph = candidate_store.traverse([node["key"]], limits)
+                                subgraph = candidate_store.traverse(list(initial_paths), limits, initial_paths, initial_confidence)
                         except EngineError:
                             warnings.append(f"Candidate {rid} could not be indexed at its catalog revision.")
                             continue
                         candidates[-1]["expanded"] = True
-                        next_prefix = path + [bridge]
+                        candidates[-1]["entities"] = list(initial_paths)
                         graphs.append({"repository": rid, "revision": match["commit_id"], **subgraph})
-                        targets.extend(targets_from_graph(subgraph, rid, next_prefix))
+                        targets.extend(targets_from_graph(subgraph, rid))
                         if subgraph["truncated"]:
                             warnings.append(f"Candidate {rid} graph traversal reached a limit.")
-                        frontier.append((subgraph, next_prefix, depth + 1))
+                        frontier.append((subgraph, depth + 1))
         unique = {}
+        defined_entities = {t["entity"] for t in targets if t["impact"] != "UNRESOLVED"}
         for target in targets:
+            if target["impact"] == "UNRESOLVED" and target["entity"] in defined_entities:
+                continue
             key = (target["repository"], target["type"], target["target"])
             if key not in unique or target["confidence"] > unique[key]["confidence"]:
                 unique[key] = target
         targets = sorted(unique.values(), key=lambda t: (-t["confidence"], t["repository"], t["target"]))
         tests = []
+        seen_tests = set()
         for group in graphs:
             for node in group["nodes"]:
                 if node["type"] == "TEST":
+                    test_identity = (group["repository"], node["key"])
+                    if test_identity in seen_tests:
+                        continue
+                    seen_tests.add(test_identity)
                     path = group["paths"][node["key"]]
                     tests.append({"file": node["name"], "repository": group["repository"],
                                   "classification": "direct" if len(path) <= 1 else "indirect",
@@ -232,6 +248,28 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
                                          "related_files": related, "confidence": "CANDIDATE",
                                          "finding": "Lexical context association; manually verify semantic relevance." if related else "No lexical association found; context remains unresolved."})
         behavior = _behavior(changes)
+        if interpretation:
+            plan = read_json(interpretation)
+            if plan.get("head") != head_id or plan.get("diff_sha256") != hashlib.sha256(diff.encode()).hexdigest():
+                raise EngineError("MR interpretation does not match the current diff and head")
+            findings = plan.get("findings", [])
+            if not isinstance(findings, list) or len(findings) > 500:
+                raise EngineError("Invalid MR interpretation findings")
+            for finding in findings:
+                classification = finding.get("classification")
+                change_index, hunk_index = finding.get("change_index"), finding.get("hunk_index")
+                if classification not in {"confirmed", "likely", "hypothesis requiring verification"}:
+                    raise EngineError("Invalid behavioral confidence classification")
+                if not isinstance(change_index, int) or not 0 <= change_index < len(changes):
+                    raise EngineError("Interpretation references an unknown change")
+                change = changes[change_index]
+                if not isinstance(hunk_index, int) or not 0 <= hunk_index < len(change.hunks):
+                    raise EngineError("Interpretation references an unknown hunk")
+                if not isinstance(finding.get("summary"), str) or not isinstance(finding.get("validation"), str):
+                    raise EngineError("Behavioral interpretation requires a summary and a validation scenario")
+                behavior.append({"area": "agent interpretation", "classification": classification,
+                                 "file": change.new_path or change.old_path, "hunk": hunk_index,
+                                 "reason": finding["summary"], "validation": finding["validation"]})
         context = {"schema_version": 1, "repository": repository_id(root), "base": base_id, "head": head_id,
                    "diff_sha256": hashlib.sha256(diff.encode()).hexdigest(), "changes": [record(c) for c in changes],
                    "behavior": behavior, "issue_context": context_mappings, "candidates": candidates,
@@ -253,11 +291,11 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
 
 def _reports(output, context, mappings, graphs, targets, tests):
     lines = ["# Merge Request analysis", "", f"Revision: `{context['base'] or 'external patch'}..{context['head']}`.", "",
-             f"Observed scope: {len(context['changes'])} changed files, {len(mappings)} symbol mappings, {len(targets)} runtime targets.", "",
+             f"Observed scope: changed files: {len(context['changes'])}; symbol mappings: {len(mappings)}; runtime targets: {len(targets)}.", "",
              "## Changed areas", ""]
     for change in context["changes"]:
         path = change["new_path"] or change["old_path"]
-        lines.append(f"- **{change['status']}** `{path}` ({_classify_file(path)}); {len(change['hunks'])} hunks.")
+        lines.append(f"- **{change['status']}** `{path}` ({_classify_file(path)}); hunks: {len(change['hunks'])}.")
     lines += ["", "## Behavioral verification hypotheses", ""]
     lines += [f"- **{b['classification']}**: {b['area']} at `{b['file']}`, hunk {b['hunk'] + 1}. {b['reason']}" for b in context["behavior"]]
     if not context["behavior"]:
@@ -309,7 +347,8 @@ def _reports(output, context, mappings, graphs, targets, tests):
         lines.append("")
     lines += ["## Integration, regression, and negative paths", ""]
     for behavior in context["behavior"]:
-        lines.append(f"- At `{behavior['file']}` hunk {behavior['hunk'] + 1}, exercise the changed {behavior['area']} path and its failure/boundary case; compare results with the agreed contract. Reason: changed constructs in this hunk.")
+        scenario = behavior.get("validation", f"Exercise the changed {behavior['area']} path and its failure/boundary case; compare results with the agreed contract.")
+        lines.append(f"- At `{behavior['file']}` hunk {behavior['hunk'] + 1}: {scenario} Reason: {behavior['reason']}")
     for mapping in context["issue_context"]:
         if mapping["kind"] == "requirement":
             lines.append(f"- Validate the explicit criterion: {mapping['statement']} Source: `{mapping['evidence']}`. Candidate files: {', '.join(mapping['related_files']) or 'unresolved'}.")

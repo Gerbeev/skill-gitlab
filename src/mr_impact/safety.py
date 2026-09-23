@@ -10,6 +10,12 @@ class EngineError(Exception):
     """An actionable input or system failure, safe to show in the CLI."""
 
 
+def validate_output(path: Path):
+    for ancestor in (path, *path.parents):
+        if ancestor.is_symlink() or (hasattr(ancestor, "is_junction") and ancestor.is_junction()):
+            raise EngineError("Refusing output through a symlink or junction")
+
+
 def safe_relative(value: str) -> str:
     value = value.replace("\\", "/")
     path = PurePosixPath(value)
@@ -34,7 +40,7 @@ def read_text(path: Path, limit: int = 2_000_000) -> str:
         raise EngineError("Input exceeds configured byte limit")
     if b"\x00" in data:
         raise EngineError("Binary input is not supported as text")
-    return data.decode("utf-8-sig", errors="replace")
+    return data.decode("utf-8-sig", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
 
 
 def redact(text: str) -> str:
@@ -46,6 +52,7 @@ def redact(text: str) -> str:
 
 
 def write_text(path: Path, content: str):
+    validate_output(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.is_symlink():
         raise EngineError("Refusing symlink output")

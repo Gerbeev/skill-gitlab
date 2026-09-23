@@ -25,7 +25,9 @@ CATEGORIES = {
 
 def category(text):
     lower = text.lower()
-    for name, words in CATEGORIES.items():
+    order = ["non_goal", "assumption", "open_question"] + [name for name in CATEGORIES if name not in {"non_goal", "assumption", "open_question"}]
+    for name in order:
+        words = CATEGORIES[name]
         if any(re.search(r"\b" + re.escape(word), lower) for word in words):
             return name
     return "context"
@@ -73,7 +75,7 @@ def discover(root: Path, scope: Path | None, template: Path, output: Path, max_b
             continue
         if path.resolve() == template.resolve() or path.resolve().is_relative_to(output.resolve()):
             continue
-        if path.name in {"AGENTS.md", "SKILL.md", "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md"}:
+        if path.name in {"AGENTS.md", "SKILL.md", "GITLAB_ISSUE_TEMPLATE.md", "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md"}:
             continue
         if re.match(r"\d\d-.*\.md$", path.name) or path.name.startswith("."):
             continue
@@ -99,7 +101,7 @@ def discover(root: Path, scope: Path | None, template: Path, output: Path, max_b
 def extract_facts(sources):
     facts = []
     for file, text in sources.items():
-        heading, in_comment = "", False
+        heading, in_comment, governance = "", False, False
         for line_no, raw in enumerate(text.splitlines(), 1):
             line = raw.strip()
             if "<!--" in line:
@@ -110,6 +112,11 @@ def extract_facts(sources):
                 continue
             if line.startswith("#") or re.fullmatch(r"\*\*.+\*\*", line):
                 heading = line.strip("#* ")
+                if re.match(r"^#{1,2}\s", line):
+                    governance = bool(re.search(r"checklist|governance|definition of|\bDoR\b|\bDoD\b", heading, re.I))
+                governance |= bool(re.search(r"\bDoR\b|\bDoD\b", heading, re.I))
+                continue
+            if re.fullmatch(r"[-*_]{3,}", line):
                 continue
             line = re.sub(r"^\s*(?:[-*]\s*(?:\[[ xX]\]\s*)?|\d+[.)]\s*)", "", line).strip()
             if not line or line in {"---", "```"} or line.startswith("```"):
@@ -121,6 +128,8 @@ def extract_facts(sources):
             elif topic == "context":
                 topic = own
             kind = topic if topic in KINDS else "context"
+            if governance:
+                kind, topic = "context", "governance"
             facts.append(Fact(line, kind, topic, file, line_no))
     return facts
 
@@ -297,16 +306,19 @@ def update_issue(issue: Path, analysis: Path, output: Path, target="Unspecified 
         if not isinstance(runtime_target, dict) or any(k not in runtime_target for k in ("target", "repository", "impact", "confidence")):
             raise EngineError("Malformed runtime target")
     evidence = read_text(validation) if validation else "No execution results were supplied. Proposed QA scenarios are not completed validation."
+    summary = [f"Changed files: {len(context.get('changes', []))}. Revisions: `{context.get('base') or 'external patch'}..{context.get('head')}`.", ""]
+    summary += [f"- {change['status']}: `{change['new_path'] or change['old_path']}`." for change in context.get("changes", [])]
+    summary += [f"- {finding['classification']}: {finding['reason']} (`{finding['file']}`, hunk {finding['hunk'] + 1})." for finding in context.get("behavior", [])]
     lines = ["# Issue update preview", "", f"Target Issue: {target}", "Intended operation: append an implementation note locally.",
              "Remote write: disabled; this engine has no remote write adapter.", "Contract changes: none proposed or applied.",
-             "", "## Proposed Markdown", "", "### Observed implementation", "", report,
-             "### Validation evidence", "", evidence, "", "### Runtime scope", ""]
+             "", "## Proposed Markdown", "", "### Observed implementation", "", "\n".join(summary),
+             "", "### Validation evidence", "", evidence, "", "### Runtime scope", ""]
     lines += [f"- {t['target']} ({t['repository']}): {t['impact']}; confidence {t['confidence']}/100." for t in runtime["targets"]]
     lines += ["", "### Limitations and follow-up", ""]
     lines += [f"- {w}" for w in context.get("warnings", [])]
     lines += ["- Review observed differences with the Issue owner; code changes alone do not establish agreed requirements.",
               "- Record actual QA outcomes and remaining blockers after execution.", "", "## Original Issue preservation", "",
-              f"Original Issue SHA-256: `{hashlib.sha256(issue_text.encode()).hexdigest()}`.",
+              f"Original Issue SHA-256: `{hashlib.sha256(issue.read_bytes()).hexdigest()}`.",
               "The input Issue and its requirements were not rewritten.", ""]
     write_text(output / "05-issue-update.md", "\n".join(lines))
     return {"output": str(output / "05-issue-update.md"), "remote_write": False}

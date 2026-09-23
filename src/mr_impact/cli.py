@@ -59,6 +59,7 @@ def parser():
     mr.add_argument("--cache", type=Path)
     mr.add_argument("--catalog", type=Path)
     mr.add_argument("--issue", type=Path)
+    mr.add_argument("--interpretation", type=Path)
     mr.add_argument("--output", type=Path, required=True)
     mr.add_argument("--no-expand", action="store_true")
     _index_options(mr)
@@ -107,7 +108,7 @@ def main(argv=None):
             result = build_index(args.repo, args.cache, "boundary" if args.boundary else "deep", args.ref, args.worktree, _config(args))
         elif args.operation == "analyze-mr":
             result = analyze_mr(args.repo, args.output, args.base, args.head, args.patch, args.commit, args.cache,
-                                args.catalog, args.issue, _limits(args), _config(args), not args.no_expand)
+                                args.catalog, args.issue, _limits(args), _config(args), not args.no_expand, args.interpretation)
         elif args.operation == "update-issue":
             result = update_issue(args.issue, args.analysis, args.output, args.target, args.validation)
         elif args.operation == "index-organization":

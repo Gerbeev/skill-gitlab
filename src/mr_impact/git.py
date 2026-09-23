@@ -12,7 +12,7 @@ from .safety import EngineError, contained, safe_relative
 ALLOWED = {"rev-parse", "ls-tree", "diff", "cat-file", "status", "ls-files"}
 
 
-def git(root: Path, *args: str, max_bytes: int = 64_000_000) -> bytes:
+def git(root: Path, *args: str, max_bytes: int = 64_000_000, input_bytes: bytes | None = None) -> bytes:
     if not args or args[0] not in ALLOWED:
         raise EngineError("Git operation is not allowlisted")
     env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GIT_OPTIONAL_LOCKS="0",
@@ -22,7 +22,7 @@ def git(root: Path, *args: str, max_bytes: int = 64_000_000) -> bytes:
             result = subprocess.run(
                 ["git", "-c", "core.fsmonitor=false", "-c", "core.hooksPath=" + os.devnull,
                  "-c", "core.quotePath=false", "-C", str(root), *args],
-                stdout=output, stderr=errors, env=env, timeout=120, shell=False)
+                stdout=output, stderr=errors, input=input_bytes, env=env, timeout=120, shell=False)
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise EngineError("Git unavailable or read operation timed out") from exc
         if result.returncode:
@@ -86,3 +86,29 @@ def content(root: Path, path: str, entry, max_bytes: int) -> str:
     if b"\0" in data:
         raise EngineError("Binary file skipped")
     return data.decode("utf-8-sig", errors="replace")
+
+
+def batch_blobs(root: Path, items: list[tuple[str, tuple]], max_file_bytes: int):
+    """Read a bounded batch with one Git process; keys are validated Git object IDs."""
+    committed = [(path, entry) for path, entry in items if not entry[2] and entry[1] <= max_file_bytes]
+    if not committed:
+        return {}
+    identities = [entry[0] for _, entry in committed]
+    if any(not re.fullmatch(r"[0-9a-f]{40,64}", oid) for oid in identities):
+        raise EngineError("Invalid blob identity")
+    budget = sum(entry[1] for _, entry in committed) + 128 * len(committed)
+    data = git(root, "cat-file", "--batch", max_bytes=budget,
+               input_bytes=("\n".join(identities) + "\n").encode("ascii"))
+    results, offset = {}, 0
+    for path, entry in committed:
+        end = data.find(b"\n", offset)
+        header = data[offset:end].decode("ascii").split()
+        if len(header) != 3 or header[0] != entry[0] or header[1] != "blob" or int(header[2]) != entry[1]:
+            raise EngineError("Unexpected Git batch response")
+        start, length = end + 1, int(header[2])
+        payload = data[start:start + length]
+        if len(payload) != length or data[start + length:start + length + 1] != b"\n":
+            raise EngineError("Incomplete Git batch response")
+        results[path] = payload
+        offset = start + length + 1
+    return results

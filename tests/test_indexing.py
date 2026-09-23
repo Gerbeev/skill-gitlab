@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from .helpers import command, commit, initialize
@@ -21,10 +22,12 @@ class IndexTests(unittest.TestCase):
         initial = build_index(self.root, self.cache)
         self.assertGreater(initial["statistics"]["files_parsed"], 0)
         directory = Path(initial["directory"])
+        export_time = (directory / "graph/dependency-graph.json").stat().st_mtime_ns
         self.assertTrue(is_fresh(self.root, directory))
         noop = build_index(self.root, self.cache)
         self.assertEqual(noop["statistics"]["files_parsed"], 0)
         self.assertEqual(noop["statistics"]["files_reused"], initial["statistics"]["files_parsed"])
+        self.assertEqual((directory / "graph/dependency-graph.json").stat().st_mtime_ns, export_time)
         path = self.root / "src/RiskWriter.scala"
         path.write_text(path.read_text().replace("VALUES (1)", "VALUES (2)"))
         commit(self.root)
@@ -40,6 +43,18 @@ class IndexTests(unittest.TestCase):
             self.assertEqual(store.symbols("src/RiskWriter.scala"), [])
             self.assertTrue(store.symbols("src/Exposure.scala"))
             self.assertFalse(store.db.execute("SELECT 1 FROM edges WHERE file='build.sbt'").fetchone())
+
+    def test_failed_parse_rolls_back_index_state(self):
+        initial = build_index(self.root, self.cache)
+        path = self.root / "src/RiskWriter.scala"
+        path.write_text(path.read_text() + "\n// New source revision\n", newline="\n")
+        commit(self.root)
+        with patch("mr_impact.indexing.parse", side_effect=RuntimeError("Synthetic detector failure")):
+            with self.assertRaises(RuntimeError):
+                build_index(self.root, self.cache)
+        with Store(Path(initial["directory"]) / "repository-index.sqlite") as store:
+            self.assertEqual(store.state()["commit"], initial["state"]["commit"])
+            self.assertTrue(store.symbols("src/RiskWriter.scala"))
 
     def test_worktree_and_committed_snapshot_are_distinct(self):
         index = build_index(self.root, self.cache)
