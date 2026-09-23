@@ -1,0 +1,214 @@
+{
+  "main": {
+    "id": "443b37a57401eeb3",
+    "type": "split",
+    "children": [
+      {
+        "id": "0307c2cb99339c93",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ca37617bad1420c1",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "56c92b3afaf43c1a",
+    "type": "split",
+    "children": [
+      {
+        "id": "2e9b422c38845a44",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ea630f43a41bcb20",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "d6e4a868e4a55418",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "b3074a202b609cbd",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "554d76cc5c0ebe58",
+    "type": "split",
+    "children": [
+      {
+        "id": "6d38139ba2ae23a1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f26b2e74c237e4f3",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "dbfe4b8141376432",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "14c17ad803e26255",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "14225e3fc5bcb44a",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "8d15a138914a9f16",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "ca37617bad1420c1",
+  "lastOpenFiles": [
+    "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
+    "TASK_STATEMENT.md",
+    "MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md",
+    "GITLAB_ISSUE_TEMPLATE.md",
+    "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
+    "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill/TASK_STATEMENT.md",
+    "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill/MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md",
+    "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill/GITLAB_ISSUE_TEMPLATE.md",
+    "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill/ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
+    "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill",
+    "copilot-mr-impact-skill-en-v11",
+    "copilot-mr-impact-skill-en-v11.zip",
+    "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/DOR_DOD_EPIC_ISSUE_LEGACY.md",
+    "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/DOR_DOD_2025.md",
+    "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/APPROVALS.md",
+    "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill",
+    "copilot-mr-impact-skill-en-v10",
+    "copilot-mr-impact-skill-en-v10.zip",
+    "APPROVALS.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/TASK_STATEMENT.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/README.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/PLAN.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/GITLAB_ISSUE_TEMPLATE.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/DOR_DOD_EPIC_ISSUE_LEGACY.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/DOR_DOD_2025.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/APPROVALS.md",
+    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill",
+    "copilot-mr-impact-skill-en-v8",
+    "copilot-mr-impact-skill-en-v8.zip",
+    "README.md",
+    "PLAN.md"
+  ]
+}
