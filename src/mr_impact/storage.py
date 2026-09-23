@@ -120,9 +120,15 @@ class Store:
                 truncated |= bool(self.db.execute("SELECT 1 FROM edges WHERE source=? OR target=? LIMIT 1", (key, key)).fetchone())
                 continue
             remaining = limits.max_edges - len(edges)
-            rows = self.db.execute("""SELECT * FROM edges WHERE (source=? OR target=?) AND confidence>=?
+            forward_types = sorted(forward & set(limits.edge_types)) if limits.edge_types else sorted(forward)
+            reverse_types = sorted(reverse & set(limits.edge_types)) if limits.edge_types else sorted(reverse)
+            f_placeholders = ",".join("?" for _ in forward_types) or "NULL"
+            r_placeholders = ",".join("?" for _ in reverse_types) or "NULL"
+            rows = self.db.execute(f"""SELECT * FROM edges
+                                  WHERE ((source=? AND type IN ({f_placeholders}))
+                                  OR (target=? AND type IN ({r_placeholders}))) AND confidence>=?
                                   ORDER BY confidence DESC,source,target,type LIMIT ?""",
-                                   (key, key, limits.confidence, remaining + 1))
+                                   (key, *forward_types, key, *reverse_types, limits.confidence, remaining + 1))
             for row in rows:
                 if limits.edge_types and row["type"] not in limits.edge_types:
                     continue

@@ -1,0 +1,4 @@
+insert_job: REGULATORY_EXPORT_JOB job_type: c
+command: powershell scripts/export.ps1
+condition: s(REPORT_GENERATION_EOD)
+machine: qa-regulatory

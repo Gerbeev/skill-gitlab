@@ -189,12 +189,12 @@ class GenericAdapter:
                 from urllib.parse import urlsplit
                 url = urlsplit(match.group())
                 target = canonical("api", (url.hostname or "unknown") + url.path)
-                c.node(target, "API_ENDPOINT", target, i, C.CANDIDATE, True)
+                c.node(target, "API_ENDPOINT", target, i, C.CANDIDATE, True, {"reference_only": True})
                 c.edge(c.owner(i), target, "USES", i, self.name, C.CANDIDATE)
             for match in re.finditer(r"\b(nuget|maven|oracle|table|event|autosys)://([\w./-]+)", line):
                 key = canonical(match[1], match[2])
                 c.node(key, {"table": "DB_TABLE", "oracle": "DB_PROCEDURE", "autosys": "AUTOSYS_JOB",
-                             "event": "EVENT"}.get(match[1], "PACKAGE"), match[2], i, C.CANDIDATE, True)
+                             "event": "EVENT"}.get(match[1], "PACKAGE"), match[2], i, C.CANDIDATE, True, {"reference_only": True})
                 c.edge(c.owner(i), key, "USES", i, self.name, C.CANDIDATE)
             # Package and import declarations are structural evidence only.
             if match := re.search(r'^\s*(?:package|namespace)\s+([\w.]+)', line):
@@ -212,7 +212,7 @@ class SqlAdapter:
     name = "sql-lexical"
 
     def accepts(self, path):
-        return PurePosixPath(path).suffix.lower() in {".sql", ".pks", ".pkb", ".scala", ".py", ".cs"}
+        return PurePosixPath(path).suffix.lower() in {".sql", ".pks", ".pkb", ".scala", ".py", ".cs", ".ps1", ".sh", ".bat", ".cmd"}
 
     def extract(self, c):
         sql_file = language(c.path) in {"sql", "plsql"}

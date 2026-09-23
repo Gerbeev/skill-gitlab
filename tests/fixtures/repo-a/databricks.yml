@@ -1,0 +1,8 @@
+resources:
+  jobs:
+    daily-risk:
+      name: Daily Risk
+      tasks:
+        - task_key: calculate
+          notebook_task:
+            notebook_path: src/RiskWriter.scala

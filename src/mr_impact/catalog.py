@@ -44,6 +44,8 @@ def aggregate(catalog: Path, directories: list[Path], replace=False):
                     state = store.state()
                     if not state:
                         raise EngineError("Repository index has no completed state")
+                    if state.get("worktree"):
+                        raise EngineError("Organization catalogs require committed indexes for reproducible candidate expansion")
                     rid = state["repository_id"]
                     db.execute("DELETE FROM dependencies WHERE repository=?", (rid,))
                     db.execute("INSERT OR REPLACE INTO repositories VALUES (?,?,?,?,?)",

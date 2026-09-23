@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -40,7 +41,8 @@ def resolve(root: Path, ref: str) -> str:
 
 
 def repository_id(root: Path) -> str:
-    return hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:16]
+    label = re.sub(r"[^a-zA-Z0-9_-]", "-", root.resolve().name)[:40] or "repository"
+    return label + "-" + hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
 
 
 def snapshot(root: Path, ref: str = "HEAD", worktree: bool = False):

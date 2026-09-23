@@ -73,7 +73,7 @@ def discover(root: Path, scope: Path | None, template: Path, output: Path, max_b
             continue
         if path.resolve() == template.resolve() or path.resolve().is_relative_to(output.resolve()):
             continue
-        if path.name in {"AGENTS.md", "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md", "TASK_STATEMENT.md", "MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md"}:
+        if path.name in {"AGENTS.md", "SKILL.md", "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md"}:
             continue
         if re.match(r"\d\d-.*\.md$", path.name) or path.name.startswith("."):
             continue
@@ -140,8 +140,9 @@ def template_slots(template):
         if re.fullmatch(r"\s*\*\*.+\*\*\s*", line):
             label = line.strip("* ")
             # A bold field followed by a list has its slot at the list item.
-            following = next((x.strip() for x in lines[i:] if x.strip()), "")
-            if not following.startswith(("-", "<!--")):
+            tail = re.sub(r"<!--[\s\S]*?-->", "", "\n".join(lines[i:]))
+            following = next((x.strip() for x in tail.splitlines() if x.strip()), "")
+            if not re.match(r"^-(?:\s|$)", following):
                 slots.append(Slot(f"L{i}", i, label, heading, "append"))
         elif re.fullmatch(r"\s*-\s*", line):
             slots.append(Slot(f"L{i}", i, label or heading, heading, "- "))
@@ -155,7 +156,9 @@ def template_slots(template):
             continue
         end = next((j for j in range(i, len(lines)) if re.match(r"^#{1,6}\s", lines[j])), len(lines))
         body = re.sub(r"<!--[\s\S]*?-->", "", "\n".join(lines[i:end])).replace("---", "").strip()
-        if not body:
+        next_heading = lines[end] if end < len(lines) else ""
+        is_container = next_heading.startswith("#" * (len(line) - len(line.lstrip("#")) + 1))
+        if not body and not is_container:
             name = line.lstrip("# ")
             slots.append(Slot(f"L{i}", i, name, name, "append"))
     return slots
@@ -175,6 +178,9 @@ def validate_interpretation(plan, template, slots, sources):
     if plan.get("template_sha256") != hashlib.sha256(template.encode()).hexdigest():
         raise EngineError("Interpretation targets a different template; read the current template again")
     fills = plan.get("fills", {})
+    empty_slots = plan.get("empty_slots", [])
+    if not isinstance(empty_slots, list) or set(empty_slots) - {s.id for s in slots} or set(empty_slots) & set(fills):
+        raise EngineError("Invalid explicitly empty template slots")
     if not isinstance(fills, dict) or set(fills) - {s.id for s in slots}:
         raise EngineError("Interpretation references unknown template slots")
     for slot, items in fills.items():
@@ -198,7 +204,7 @@ def validate_interpretation(plan, template, slots, sources):
             slot_info = next(s for s in slots if s.id == slot)
             if category(slot_info.label) in {"requirement", "scope"} and item["kind"] in {"assumption", "inference", "open_question"}:
                 raise EngineError("Assumptions and inference cannot become hard requirements")
-    return fills
+    return fills, set(empty_slots)
 
 
 def analyze_issue(root: Path, output: Path, scope: Path | None = None, template: Path | None = None,
@@ -207,10 +213,16 @@ def analyze_issue(root: Path, output: Path, scope: Path | None = None, template:
     template_text = read_text(template)
     selected, sources, warnings = discover(root, scope, template, output)
     facts, slots = extract_facts(sources), template_slots(template_text)
-    fills = validate_interpretation(read_json(interpretation), template_text, slots, sources) if interpretation else None
+    fills, empty_slots = validate_interpretation(read_json(interpretation), template_text, slots, sources) if interpretation else (None, set())
     generated = template_text.splitlines()
     used, unresolved, records = set(), [], []
     for slot in slots:
+        if slot.id in empty_slots:
+            if slot.prefix not in {"append", "placeholder"}:
+                generated[slot.line - 1] = slot.prefix.rstrip()
+            elif slot.prefix == "placeholder":
+                generated[slot.line - 1] = re.sub(r"\{\{[^}]+\}\}", "", generated[slot.line - 1])
+            continue
         if fills is not None:
             items = fills.get(slot.id, [])
             texts = [("AI inference: " if x["kind"] == "inference" else "Assumption: " if x["kind"] == "assumption" else "") + x["text"] for x in items]
@@ -274,6 +286,16 @@ def update_issue(issue: Path, analysis: Path, output: Path, target="Unspecified 
     context = read_json(analysis / "mr-context.json")
     runtime = read_json(analysis / "runtime-impact.json")
     report = read_text(analysis / "01-mr-analysis.md")
+    if not isinstance(context, dict) or context.get("schema_version") != 1 or not isinstance(runtime, dict) or not isinstance(runtime.get("targets"), list):
+        raise EngineError("Unsupported or malformed MR report data")
+    for filename in ("runtime-impact.json", "01-mr-analysis.md"):
+        expected = context.get("artifact_sha256", {}).get(filename)
+        actual = hashlib.sha256((analysis / filename).read_bytes()).hexdigest()
+        if expected != actual:
+            raise EngineError("MR report artifacts are incomplete or changed; regenerate the MR analysis")
+    for runtime_target in runtime["targets"]:
+        if not isinstance(runtime_target, dict) or any(k not in runtime_target for k in ("target", "repository", "impact", "confidence")):
+            raise EngineError("Malformed runtime target")
     evidence = read_text(validation) if validation else "No execution results were supplied. Proposed QA scenarios are not completed validation."
     lines = ["# Issue update preview", "", f"Target Issue: {target}", "Intended operation: append an implementation note locally.",
              "Remote write: disabled; this engine has no remote write adapter.", "Contract changes: none proposed or applied.",

@@ -3,6 +3,7 @@
 import fnmatch
 import hashlib
 import json
+import itertools
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
@@ -57,7 +58,7 @@ def fingerprint(entries, config):
     return digest.hexdigest()
 
 
-def is_fresh(root, directory, ref="HEAD", worktree=False, config=None):
+def is_fresh(root, directory, ref="HEAD", worktree=False, config=None, mode=None):
     if not (directory / "repository-index.sqlite").exists():
         return False
     with Store(directory / "repository-index.sqlite") as store:
@@ -68,7 +69,7 @@ def is_fresh(root, directory, ref="HEAD", worktree=False, config=None):
     commit, entries = snapshot(root, ref, worktree)
     return (old["commit"] == commit and old["fingerprint"] == fingerprint(entries, config)
             and old["config"] == record(config) and old["schema_version"] == SCHEMA_VERSION
-            and old["adapter_version"] == ADAPTER_VERSION)
+            and old["adapter_version"] == ADAPTER_VERSION and (mode is None or old["mode"] == mode))
 
 
 def _export_array(path, rows):
@@ -159,18 +160,22 @@ def build_index(root: Path, cache: Path | None = None, mode="deep", ref="HEAD", 
                         stats["files_skipped" if skipped else "files_parsed"] += 1
             store.cleanup()
             store.set_state(state)
-        stats["warnings"] = [warning for row in store.db.execute("SELECT warnings FROM files ORDER BY path")
-                             for warning in json.loads(row[0])][:1000]
+        stats["warnings"] = list(itertools.islice((warning for row in store.db.execute("SELECT warnings FROM files ORDER BY path")
+                                                   for warning in json.loads(row[0])), 1000))
         for table, key in (("nodes", "nodes_created"), ("edges", "edges_created"), ("symbols", "symbols")):
             stats[key] = store.db.execute(f"SELECT count(*) FROM {table}").fetchone()[0]
         stats["boundary_entities"] = store.db.execute("SELECT count(*) FROM nodes WHERE boundary=1").fetchone()[0]
-        _export_array(directory / "boundary.json", boundary_rows(store))
-        _export_array(directory / "repository-index.json", store.db.execute("SELECT * FROM files ORDER BY path"))
         graph_dir = directory / "graph"
         graph_dir.mkdir(exist_ok=True)
-        _export_array(graph_dir / "dependency-graph.json", (
-            dict(row) | {"evidence": json.loads(row["evidence"])}
-            for row in store.db.execute("SELECT source,target,type,confidence,evidence FROM edges ORDER BY source,target,type")))
+        changed = rebuild or stats["files_parsed"] or stats["files_deleted"] or pending
+        if changed or not (directory / "boundary.json").exists():
+            _export_array(directory / "boundary.json", boundary_rows(store))
+        if changed or not (directory / "repository-index.json").exists():
+            _export_array(directory / "repository-index.json", store.db.execute("SELECT * FROM files ORDER BY path"))
+        if changed or not (graph_dir / "dependency-graph.json").exists():
+            _export_array(graph_dir / "dependency-graph.json", (
+                dict(row) | {"evidence": json.loads(row["evidence"])}
+                for row in store.db.execute("SELECT source,target,type,confidence,evidence FROM edges ORDER BY source,target,type")))
         write_json(graph_dir / "graph-manifest.json", {"schema_version": SCHEMA_VERSION, "commit": commit,
                                                       "nodes": stats["nodes_created"], "edges": stats["edges_created"]})
     stats["elapsed_seconds"] = round(time.monotonic() - started, 3)
