@@ -11,10 +11,14 @@
             "id": "ca37617bad1420c1",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS"
             }
           }
         ]
@@ -90,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -99,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks"
+              "title": "Backlinks for ASTRA6_IMPLEMENTATION_INSTRUCTIONS"
             }
           },
           {
@@ -108,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links"
+              "title": "Outgoing links from ASTRA6_IMPLEMENTATION_INSTRUCTIONS"
             }
           },
           {
@@ -150,12 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of ASTRA6_IMPLEMENTATION_INSTRUCTIONS"
             }
           }
         ]
@@ -178,6 +185,17 @@
   },
   "active": "ca37617bad1420c1",
   "lastOpenFiles": [
+    "src/mr_impact/issues.py",
+    "src/mr_impact/catalog.py",
+    "src/mr_impact/indexing.py",
+    "src/mr_impact/storage.py",
+    "src/mr_impact/adapters.py",
+    "scripts/mr-impact.py",
+    "scripts",
+    "src/mr_impact/models.py",
+    "src/mr_impact/__main__.py",
+    "src/mr_impact/__init__.py",
+    "src/mr_impact/safety.py",
     "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
     "TASK_STATEMENT.md",
     "MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md",
@@ -187,15 +205,9 @@
     "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill/MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md",
     "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill/GITLAB_ISSUE_TEMPLATE.md",
     "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill/ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
-    "copilot-mr-impact-skill-en-v11/copilot-mr-impact-skill",
-    "copilot-mr-impact-skill-en-v11",
-    "copilot-mr-impact-skill-en-v11.zip",
     "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/DOR_DOD_EPIC_ISSUE_LEGACY.md",
     "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/DOR_DOD_2025.md",
     "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/APPROVALS.md",
-    "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill",
-    "copilot-mr-impact-skill-en-v10",
-    "copilot-mr-impact-skill-en-v10.zip",
     "APPROVALS.md",
     "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/TASK_STATEMENT.md",
     "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/README.md",
@@ -205,9 +217,6 @@
     "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/DOR_DOD_EPIC_ISSUE_LEGACY.md",
     "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/DOR_DOD_2025.md",
     "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill/APPROVALS.md",
-    "copilot-mr-impact-skill-en-v8/copilot-mr-impact-skill",
-    "copilot-mr-impact-skill-en-v8",
-    "copilot-mr-impact-skill-en-v8.zip",
     "README.md",
     "PLAN.md"
   ]
