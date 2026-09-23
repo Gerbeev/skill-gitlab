@@ -1,6 +1,6 @@
 # Extending technology extraction
 
-`src/mr_impact/adapters.py` defines the `Adapter` protocol and ordered registry.
+`skills/_engine/src/mr_impact/adapters.py` defines the `Adapter` protocol and ordered registry.
 An adapter implements `name`, `accepts(path)`, and `extract(context)`. Multiple
 adapters can process one file. Generic extraction is always enabled. Register a
 new adapter in `ADAPTERS`, add focused fixtures/tests, and bump `ADAPTER_VERSION`
@@ -49,3 +49,10 @@ For a future Roslyn adapter, use an approved installed SDK and a separately
 audited helper without executing project targets or restore hooks. Keep its
 output in the shared records, preserve the fallback when unavailable, and test
 overload/binding cases before claiming semantic precision.
+
+
+The `runtime-entrypoints` adapter detects simple cron entries, systemd service/timer
+links, and explicit `publish_event`/`consume_event` calls. Event calls are lexical
+candidates with confidence 30, not framework binding. Absolute runtime paths remain
+unresolved until a project-specific deployment mapping is supplied. AutoSys profiles
+produce configuration-reference edges. These detectors never execute their commands.

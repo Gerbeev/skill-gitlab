@@ -5,7 +5,7 @@ The four local workflows are implemented. The following boundaries are explicit:
 - Standalone Issue extraction is conservative and preserves source wording.
   Arbitrary template prose, semantic ambiguity, requirement quality, and complex
   contradictions require the Copilot interpretation workflow. Evidence validation
-  checks paths/ranges and template identity; it cannot prove a paraphrase true.
+  checks paths/ranges, source fingerprints, and template identity; it cannot prove a paraphrase true.
 - C#/Scala extraction is lexical, not a compiler call graph. Python AST calls
   remain candidates when runtime name binding can differ. Reflection, dependency
   injection, generated code, dynamic SQL, environment-expanded launcher paths,
@@ -28,10 +28,11 @@ The four local workflows are implemented. The following boundaries are explicit:
   service-level catalog scheduling are future extensions.
 - Index metadata enumeration is bounded but held in memory; graph traversal and
   exports are SQLite-backed/streamed. Commit tree metadata above the Git output
-  limit is rejected. Billion-line or thousand-repository performance has not been
-  benchmarked. No-op runs reuse parses/exports but still check Git metadata.
-- Root commits have no first-parent MR range; use an explicit existing base or
-  a suitable patch. Analysis does not apply patches or inspect uncommitted MR
+  limit is rejected. A 1,000-file synthetic benchmark is recorded; billion-line or
+  thousand-repository performance has not been benchmarked. No-op runs reuse parses/exports but still check Git metadata.
+- Root commits use an empty-tree comparison. Merge commits use their first parent.
+  External binary patches require Git-range analysis; patches without a base cannot
+  verify old-side claims. Analysis never applies patches or inspects uncommitted MR
   changes. Indexing supports worktree snapshots separately.
 - Text discovery does not perform OCR or extract PDF/Word content. Provide
   provenance-bearing text exports or have the agent inspect available visuals.
@@ -42,3 +43,6 @@ The four local workflows are implemented. The following boundaries are explicit:
 Future work can add an approved Roslyn helper, complete YAML parsing behind a
 narrow optional adapter, snapshot transport, and measured scale benchmarks.
 None is required to run the demonstrated local workflow.
+
+Standalone Issue generation returns a draft. Completed semantic delivery requires
+the source-bound interpretation and `--require-review` described in the Issue workflow.

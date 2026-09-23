@@ -1,0 +1,93 @@
+{
+  "findings": [
+    {
+      "id": "BUG-001",
+      "reproduced": true,
+      "observed": "## Details\nOld behavior fails. | Old behavior fails."
+    },
+    {
+      "id": "BUG-002",
+      "reproduced": true,
+      "observed": "## Optional notes\n\nUnresolved: no supporting evidence in the selected sources."
+    },
+    {
+      "id": "BUG-003",
+      "reproduced": true,
+      "observed": {
+        "inference_in_acceptance_criteria_accepted": true
+      }
+    },
+    {
+      "id": "BUG-004",
+      "reproduced": true,
+      "observed": {
+        "mapped_functions": [
+          "first",
+          "second"
+        ],
+        "actually_changed": "first"
+      }
+    },
+    {
+      "id": "BUG-005",
+      "reproduced": true,
+      "observed": {
+        "mapping_types": [
+          "changed"
+        ]
+      }
+    },
+    {
+      "id": "BUG-006",
+      "reproduced": true,
+      "observed": {
+        "fabricated_deletion_accepted_at_identical_base_head": true
+      }
+    },
+    {
+      "id": "BUG-007",
+      "reproduced": true,
+      "observed": {
+        "C_confidence": 30,
+        "available_path_confidence": 100
+      }
+    },
+    {
+      "id": "BUG-008",
+      "reproduced": true,
+      "observed": {
+        "import_targets": [
+          "file://worker.py"
+        ],
+        "reached": [
+          "file://pkg/worker.py",
+          "symbol://pkg/worker.py::run:1"
+        ]
+      }
+    },
+    {
+      "id": "BUG-009",
+      "reproduced": true,
+      "observed": {
+        "boundary_node": true,
+        "catalog_rows": []
+      }
+    },
+    {
+      "id": "BUG-010",
+      "reproduced": true,
+      "observed": {
+        "serialized_json": "{\n  \"token\": [REDACTED]\n}",
+        "invalid_json": true
+      }
+    },
+    {
+      "id": "BUG-011",
+      "reproduced": true,
+      "observed": {
+        "root_commit_error": "Git rev-parse failed; verify repository and revision"
+      }
+    }
+  ],
+  "reproduced": 11
+}

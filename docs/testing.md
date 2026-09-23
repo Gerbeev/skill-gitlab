@@ -3,9 +3,9 @@
 Run from the project root using Python 3.11 or later and Git:
 
 ```text
-python -m unittest discover -v
-python -m compileall -q src scripts tests
-python scripts/run-example.py --output examples/output
+python -m unittest discover -s skills/_engine/tests -t skills/_engine -v
+python -m compileall -q skills/_engine/src skills/_engine/scripts skills/_engine/tests
+python skills/_engine/scripts/run-example.py --output docs/examples/output
 ```
 
 Tests use the standard library and isolated temporary repositories. They do not
@@ -35,12 +35,12 @@ and indexes are removed when the temporary workspace closes. Retained reports
 are examples, not live indexes. Repository IDs and commit hashes may differ
 between runs.
 
-Review `examples/output/mr/04-test-plan.md` for actual QA targets and graph paths.
+Review `docs/examples/output/mr/04-test-plan.md` for actual QA targets and graph paths.
 The runner asserts that local and downstream jobs are found, that changed symbols
 are mapped, and that modifying a copied template changes generated headings.
 
 Skill wrapper checks verify four frontmatter names, operation routing, and that
-business logic lives outside skill directories. To validate discovery in a
+canonical operation instructions route to the common `skills/_engine` package. To validate discovery in a
 specific VS Code installation, open this repository in Agent Mode and check the
 four skill names; this requires the user's Copilot environment and is not
 simulated by the Python test suite.
@@ -49,3 +49,16 @@ The optional external `skill-creator` frontmatter validator requires PyYAML.
 During implementation it was run with PyYAML isolated under the ignored
 `.repository-analysis/validation-deps` directory. PyYAML is not an engine or test
 suite dependency and is not required for any of the four local workflows.
+
+
+Audit regressions and performance measurements:
+
+```text
+python skills/_engine/scripts/audit-repro.py
+python skills/_engine/scripts/benchmark-index.py --files 1000
+```
+
+The audit probe now exits 0 and preserves individual observed results for all 11 bugs.
+Regression tests also cover source-bound review, patch newlines, depth/confidence
+tradeoffs, artifact integrity, runtime entrypoints, and incremental package resolution.
+The benchmark measures Python allocations only; see its recorded limitations.

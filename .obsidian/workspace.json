@@ -11,14 +11,10 @@
             "id": "ca37617bad1420c1",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS"
+              "title": "New tab"
             }
           }
         ]
@@ -94,7 +90,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +99,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for ASTRA6_IMPLEMENTATION_INSTRUCTIONS"
+              "title": "Backlinks"
             }
           },
           {
@@ -113,12 +108,11 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from ASTRA6_IMPLEMENTATION_INSTRUCTIONS"
+              "title": "Outgoing links"
             }
           },
           {
@@ -185,41 +179,41 @@
   },
   "active": "ea630f43a41bcb20",
   "lastOpenFiles": [
-    "src/mr_impact/__pycache__/analysis.cpython-314.pyc.3278226206512",
-    "docs/implementation-report.md",
-    "tests/__pycache__/test_indexing.cpython-314.pyc.1592505748528",
-    "src/mr_impact/__pycache__/indexing.cpython-314.pyc.2726953866288",
-    "src/mr_impact/__pycache__/issues.cpython-314.pyc.2405447795120",
-    "src/mr_impact/__pycache__/analysis.cpython-314.pyc.2405447795120",
-    "tests/__pycache__/test_integration.cpython-314.pyc.2405437406640",
-    "tests/fixtures/repo-a/tests/__pycache__/test_launcher.cpython-314.pyc",
-    "tests/fixtures/repo-a/tests/__pycache__",
-    "tests/fixtures/repo-a/scripts/__pycache__/run_risk.cpython-314.pyc",
-    "tests/fixtures/repo-a/scripts/__pycache__",
-    "scripts/__pycache__/run-example.cpython-314.pyc",
-    "examples/output/README.md",
-    "examples/output/mr/05-issue-update.md",
-    "examples/output/mr/04-test-plan.md",
-    "examples/output/mr/03-impact-analysis.md",
-    "examples/output/mr/02-change-context.md",
-    "examples/output/mr/01-mr-analysis.md",
-    "examples/output/issue/01-generated-issue.md",
-    "examples/output/issue/00-issue-analysis.md",
-    "docs/security.md",
-    "docs/testing.md",
-    "docs/workflow.md",
-    "docs/mr-workflow.md",
-    "docs/limitations.md",
-    "docs/index-storage.md",
-    "docs/issue-workflow.md",
-    "docs/adapters.md",
-    "README.md",
-    "tests/fixtures/issue/qa-notes.md",
-    "tests/fixtures/issue/GITLAB_ISSUE_TEMPLATE.md",
-    "tests/fixtures/issue/notes.md",
-    "copilot-mr-impact-skill-en-v10/copilot-mr-impact-skill/ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
-    "TASK_STATEMENT.md",
-    "MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md",
-    "GITLAB_ISSUE_TEMPLATE.md"
+    "skills/_engine/scripts/__pycache__/audit-repro.cpython-314.pyc",
+    "docs/bugs/audit-results.json",
+    "docs/bugs/README.md",
+    "docs/bugs/BUG-011.md",
+    "docs/bugs/BUG-010.md",
+    "docs/bugs/BUG-008.md",
+    "docs/bugs/BUG-005.md",
+    "docs/bugs/BUG-009.md",
+    "docs/bugs/BUG-007.md",
+    "docs/bugs/BUG-006.md",
+    "docs/bugs/BUG-004.md",
+    "docs/bugs/BUG-003.md",
+    "docs/bugs/BUG-002.md",
+    "docs/bugs/BUG-001.md",
+    "docs/bugs",
+    "docs/REPOSITORY_LAYOUT.md",
+    "docs/IMPROVEMENT_INSTRUCTIONS.md",
+    "docs/REQUIREMENTS_AUDIT.md",
+    "skills/_engine/scripts/audit-repro.py",
+    "skills/update-issue/SKILL.md",
+    "skills/update-issue",
+    "skills/analyze-mr/SKILL.md",
+    "skills/analyze-mr",
+    "skills/index-repository/SKILL.md",
+    "skills/index-repository",
+    "skills/analyze-issue/SKILL.md",
+    "skills/analyze-issue",
+    "docs/MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md",
+    "docs/GITLAB_ISSUE_TEMPLATE.md",
+    "docs/ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md",
+    "docs/TASK_STATEMENT.md",
+    "docs/README.md",
+    "docs/examples/output/issue/00-issue-analysis.md",
+    "docs/examples/output/mr/test-impact.json",
+    "docs/examples/output/mr/runtime-impact.json",
+    "docs/examples/output/mr/mr-context.json"
   ]
 }

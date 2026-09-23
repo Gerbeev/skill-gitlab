@@ -81,3 +81,34 @@ Report stale, missing, dynamic, filtered, or truncated dependencies visibly.
 Broader implementation, edits in non-goal areas, and independent change groups
 are descriptive review/QA context. They are not automatically errors in the
 developer's understanding or implementation.
+
+
+## Verified patch and commit inputs
+
+External text patches are checked before index/report generation. With `--base`,
+the complete transformation of each included file must match both snapshots,
+including old/new payload, context, positions, additions, removals, renames, and
+end-of-file newline markers. A patch may cover a subset of files. Without `--base`,
+head content and deletion absence are checked, while old-side claims remain explicitly
+unverified. External binary patches require a Git range instead. Root commits use
+an empty-tree comparison and are reported with `base_kind: empty_tree`; merge commits
+use the first parent.
+
+Changed-symbol mappings use actual added/removed line positions, not unchanged hunk
+context. Python signatures include arguments, annotations, defaults, return annotations,
+and async status. Graph traversal keeps nondominated confidence/depth paths, retaining
+shorter alternatives when they are needed to respect the depth budget.
+
+## Structured QA scenarios
+
+An interpreted finding may add a `scenario` object with `target` (a discovered entity
+ID), `repository`, `preconditions`, `inputs`, and `expected` strings. Unknown targets
+are rejected. Its evidence references the finding's changed file/hunk and the runtime
+dependency path. Scenarios appear in `test-impact.json` and the QA report with
+`executed: false`; they never count as execution evidence. If parameters are missing,
+the report asks for them rather than inventing executable commands or expected values.
+
+`completion_checks` records evidence availability separately from correctness.
+`follow_up` entries have IDs, status, revision evidence, and an action. Update Issue
+preserves these entries and verifies hashes of all eight supporting MR artifacts.
+Regenerate older MR output before updating an Issue with the strengthened artifact contract.

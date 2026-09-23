@@ -1,0 +1,92 @@
+{
+  "python": "3.14.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "input_files": 1000,
+  "memory_measurement": "Peak Python allocations from tracemalloc; excludes Git subprocess memory and native SQLite allocations.",
+  "scope": "Synthetic local repository and one candidate; not an organization-scale performance claim.",
+  "measurements": [
+    {
+      "scenario": "initial_deep",
+      "elapsed_seconds": 2.1115,
+      "peak_python_bytes": 1155708,
+      "statistics": {
+        "files_discovered": 1000,
+        "files_parsed": 1000,
+        "files_reused": 0,
+        "files_skipped": 0,
+        "files_deleted": 0,
+        "warnings": [],
+        "nodes_created": 2001,
+        "edges_created": 2000,
+        "symbols": 1000,
+        "boundary_entities": 1001,
+        "elapsed_seconds": 2.107
+      },
+      "candidate_repositories": null
+    },
+    {
+      "scenario": "no_op",
+      "elapsed_seconds": 0.1226,
+      "peak_python_bytes": 347948,
+      "statistics": {
+        "files_discovered": 1000,
+        "files_parsed": 0,
+        "files_reused": 1000,
+        "files_skipped": 0,
+        "files_deleted": 0,
+        "warnings": [],
+        "nodes_created": 2001,
+        "edges_created": 2000,
+        "symbols": 1000,
+        "boundary_entities": 1001,
+        "elapsed_seconds": 0.122
+      },
+      "candidate_repositories": null
+    },
+    {
+      "scenario": "one_file_update",
+      "elapsed_seconds": 0.5395,
+      "peak_python_bytes": 775795,
+      "statistics": {
+        "files_discovered": 1000,
+        "files_parsed": 1,
+        "files_reused": 999,
+        "files_skipped": 0,
+        "files_deleted": 0,
+        "warnings": [],
+        "nodes_created": 2001,
+        "edges_created": 2000,
+        "symbols": 1000,
+        "boundary_entities": 1001,
+        "elapsed_seconds": 0.534
+      },
+      "candidate_repositories": null
+    },
+    {
+      "scenario": "boundary",
+      "elapsed_seconds": 1.5103,
+      "peak_python_bytes": 682677,
+      "statistics": {
+        "files_discovered": 1000,
+        "files_parsed": 1000,
+        "files_reused": 0,
+        "files_skipped": 0,
+        "files_deleted": 0,
+        "warnings": [],
+        "nodes_created": 1001,
+        "edges_created": 1000,
+        "symbols": 0,
+        "boundary_entities": 1001,
+        "elapsed_seconds": 1.506
+      },
+      "candidate_repositories": null
+    },
+    {
+      "scenario": "candidate_expansion",
+      "elapsed_seconds": 2.5232,
+      "peak_python_bytes": 2656333,
+      "statistics": {},
+      "candidate_repositories": 1
+    }
+  ]
+}

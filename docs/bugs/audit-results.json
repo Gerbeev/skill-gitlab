@@ -1,0 +1,109 @@
+{
+  "findings": [
+    {
+      "id": "BUG-001",
+      "reproduced": false,
+      "observed": "## Details\nOld behavior fails. | New behavior succeeds."
+    },
+    {
+      "id": "BUG-002",
+      "reproduced": false,
+      "observed": "## Optional notes"
+    },
+    {
+      "id": "BUG-003",
+      "reproduced": false,
+      "observed": {
+        "inference_in_acceptance_criteria_accepted": false
+      }
+    },
+    {
+      "id": "BUG-004",
+      "reproduced": false,
+      "observed": {
+        "mapped_functions": [
+          "first"
+        ],
+        "actually_changed": "first"
+      }
+    },
+    {
+      "id": "BUG-005",
+      "reproduced": false,
+      "observed": {
+        "mapping_types": [
+          "signature_changed"
+        ]
+      }
+    },
+    {
+      "id": "BUG-006",
+      "reproduced": false,
+      "observed": {
+        "fabricated_deletion_accepted_at_identical_base_head": false
+      }
+    },
+    {
+      "id": "BUG-007",
+      "reproduced": false,
+      "observed": {
+        "C_confidence": 100,
+        "available_path_confidence": 100
+      }
+    },
+    {
+      "id": "BUG-008",
+      "reproduced": false,
+      "observed": {
+        "import_targets": [
+          "file://pkg/worker.py"
+        ],
+        "reached": [
+          "file://pkg/worker.py",
+          "symbol://pkg/worker.py::run:1",
+          "file://pkg/main.py"
+        ]
+      }
+    },
+    {
+      "id": "BUG-009",
+      "reproduced": false,
+      "observed": {
+        "boundary_node": true,
+        "catalog_rows": [
+          {
+            "entity": "file://standalone.sh",
+            "type": "SCRIPT",
+            "role": "DEFINES",
+            "source": "file://standalone.sh",
+            "confidence": 100,
+            "evidence": {
+              "file": "standalone.sh",
+              "start_line": 1,
+              "end_line": 1,
+              "detector": "declaration",
+              "confidence": 100,
+              "revision": ""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BUG-010",
+      "reproduced": false,
+      "observed": {
+        "serialized_json": "{\n  \"token\": \"[REDACTED]\"\n}",
+        "invalid_json": false
+      }
+    },
+    {
+      "id": "BUG-011",
+      "reproduced": false,
+      "observed": {
+        "root_commit_error": null
+      }
+    }
+  ],
+  "reproduced": 0
+}

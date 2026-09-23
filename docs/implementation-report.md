@@ -1,5 +1,8 @@
 # Implementation completion report
 
+Historical implementation report; current requirements findings and validation limits
+are in [the 2026-09-23 audit](REQUIREMENTS_AUDIT.md). Paths below reflect the new layout.
+
 ## Delivered
 
 Four thin Copilot skill wrappers route to one shared Python engine. The engine
@@ -8,7 +11,7 @@ indexes, a compact organization reverse catalog, local/cross-repository MR
 impact and QA reports, and a local Issue-update preview. Core workflows use only
 Python's standard library, Git, and SQLite and work without network access.
 
-Business logic is under `src/mr_impact`, outside `.github/skills`. Typed records
+Business logic is under `skills/_engine/src/mr_impact`, outside `.github/skills`. Typed records
 and consumed validation contracts are shared across operations. The current
 Issue template remains the only Issue layout authority. The four wrappers do not
 contain copies of parsers, storage, or report generation.
@@ -16,14 +19,14 @@ contain copies of parsers, storage, or report generation.
 ## Files and entry points
 
 - `.github/skills/{analyze-issue,index-repository,analyze-mr,update-issue}/SKILL.md`
-- `src/mr_impact/`: models, safety, Git reads, adapters, SQLite storage, indexing,
+- `skills/_engine/src/mr_impact/`: models, safety, Git reads, adapters, SQLite storage, indexing,
   organization catalog, diff parsing, Issue/MR services, and CLI.
-- `pyproject.toml`: the `mr-impact` executable entry point, with no runtime dependencies.
-- `scripts/mr-impact.py`: installation-free launcher.
-- `scripts/run-example.py`: reproducible three-repository workflow.
-- `tests/`: unit/integration tests and representative source fixtures.
+- `skills/_engine/pyproject.toml`: the `mr-impact` executable entry point, with no runtime dependencies.
+- `skills/_engine/scripts/mr-impact.py`: installation-free launcher.
+- `skills/_engine/scripts/run-example.py`: reproducible three-repository workflow.
+- `skills/_engine/tests/`: unit/integration tests and representative source fixtures.
 - `docs/`: workflows, storage, adapter extension, trust boundaries, tests, and limitations.
-- `examples/output/`: inspected Issue/MR/QA/update artifacts and measured example results.
+- `docs/examples/output/`: inspected Issue/MR/QA/update artifacts and measured example results.
 
 Commands: `analyze-issue`, `index-repository`, `analyze-mr`, `update-issue`.
 Maintenance helpers: `index-organization`, `query-graph`, `inspect-template`.
@@ -38,7 +41,7 @@ semantics because no .NET SDK is installed in the implementation environment.
 
 ## Validation results
 
-- `python -m unittest discover -v`: **38 tests passed**, including integration tests.
+- `python -m unittest discover -s skills/_engine/tests -t skills/_engine -v`: **38 tests passed**, including integration tests.
 - `python -m compileall -q src scripts tests`: passed.
 - `skill-creator/scripts/quick_validate.py`: all four skill wrappers passed.
 - The complete example runner passed all eight workflow assertions.

@@ -99,3 +99,24 @@ Git command output is capped at 64 MB (diffs at 20 MB) and commands have a
 partitioned include scope or future streaming Git-tree enumeration. No billion-
 line benchmark has been performed. Configurable ceilings are safeguards, not a
 claim that maximum settings fit every workstation.
+
+
+## Audit fixes and reuse behavior
+
+Adapter version 2 rebuilds older indexes once. Subsequent exact no-op builds return
+statistics without rewriting manifests or exports. A missing export is regenerated
+without re-parsing unchanged files. Excluded worktree files are filtered before their
+contents are read; oversized dirty files are recorded without hashing their contents.
+
+Boundary exports include standalone definitions as well as relationship observations.
+Candidate observation lookup batches up to 400 entities per SQLite query. Python relative
+imports use package-relative paths; package `__init__.py` resolution is refreshed when
+files are added or removed without re-parsing unchanged callers. The original import
+target remains in edge provenance for reversible resolution.
+
+Edge evidence retains the extraction revision, while the graph/index manifest records
+the current snapshot revision. Unchanged blobs can therefore reuse extraction evidence
+without claiming that parsing was repeated at every commit.
+
+Synthetic timing and Python-allocation measurements are in [benchmark-results.json](benchmark-results.json).
+They cover 1,000 files and one candidate repository, not thousands of repositories.

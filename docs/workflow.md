@@ -1,7 +1,7 @@
 # Operating the four skills
 
 All commands below use the same `mr-impact` entry point. In an uninstalled
-checkout, substitute `python scripts/mr-impact.py` for `mr-impact`.
+checkout, substitute `python skills/_engine/scripts/mr-impact.py` for `mr-impact`.
 
 ## Analyze Issue
 
@@ -119,7 +119,7 @@ Record observed changes, validation evidence, uncertainty, and follow-up work.
 ```text
 mr-impact index-organization --catalog ORG.sqlite --index INDEX_A --index INDEX_B
 mr-impact query-graph --index INDEX_DIRECTORY --seed file://scripts/run.py --max-depth 5
-mr-impact inspect-template --template GITLAB_ISSUE_TEMPLATE.md
+mr-impact inspect-template --template docs/GITLAB_ISSUE_TEMPLATE.md
 ```
 
 Catalog updates replace each listed repository's observations; unrelated entries
