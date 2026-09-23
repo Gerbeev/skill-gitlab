@@ -12,14 +12,20 @@ workflows need no network connection, GitLab credentials, or third-party Python
 packages. Repository code, build tools, tests, scripts, and jobs are never executed
 by an analysis command.
 
-## Audit and repository layout
+## Requirements and layout
 
-- [Completed fixes and verification](FIX_REPORT.md)
+[TASK_STATEMENT.md](TASK_STATEMENT.md) defines the product contract and references
+[the multi-repository architecture](MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md).
+[Requirements assessment](REQUIREMENTS_AUDIT.md) records coverage, limitations,
+and the rationale for the current simplification.
 
-- [Requirements audit](REQUIREMENTS_AUDIT.md)
-- [Improvement instructions](IMPROVEMENT_INSTRUCTIONS.md)
-- [Confirmed bug tracker](bugs/README.md)
-- [Repository layout and migration](REPOSITORY_LAYOUT.md)
+```text
+.github/skills/<operation>/SKILL.md   Four canonical Copilot entrypoints
+skills/_engine/src/mr_impact/        One shared Python implementation
+skills/_engine/scripts/             Launcher, example runner, benchmark
+skills/_engine/tests/               Unit/integration tests and input fixtures
+docs/                              Requirements and maintained operating guides
+```
 
 ## Quick start
 
@@ -32,6 +38,9 @@ python skills/_engine/scripts/mr-impact.py index-repository --repo /work/risk --
 python skills/_engine/scripts/mr-impact.py analyze-mr --repo /work/risk --base main --head HEAD --issue /work/issue-analysis/01-generated-issue.md --output /work/mr-analysis
 python skills/_engine/scripts/mr-impact.py update-issue --issue /work/issue-analysis/01-generated-issue.md --analysis /work/mr-analysis --output /work/mr-analysis --target risk#1427
 ```
+
+The Issue command above produces a draft. For completed Issue delivery, follow
+the [inspection and review workflow](issue-workflow.md) and use `--require-review`.
 
 Use Windows paths on Windows, and quote paths containing spaces. All relative
 CLI paths are relative to the calling working directory. `--repo` defaults to the
@@ -55,8 +64,8 @@ wrapper files does not install the engine.
 
 ## Copilot use
 
-Canonical instructions live in `skills/<name>/SKILL.md`; `.github/skills/<name>/SKILL.md`
-contains only discovery redirects to those instructions. Their structure
+Canonical instructions live directly in `.github/skills/<name>/SKILL.md`; there
+is no second set of entrypoints or discovery redirects. Their structure
 follows [GitHub's Agent Skills documentation](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills).
 Open this project in a Copilot-enabled VS Code workspace and invoke a skill in
 Agent Mode. The shared workflows separate deterministic extraction from the
@@ -93,9 +102,9 @@ host but no SDK, so Roslyn binding is unavailable. No fake semantic resolver is 
 - [Trust boundaries and resource limits](security.md)
 - [Testing and reproducible demonstration](testing.md)
 - [Known limitations](limitations.md)
-- [Implementation and validation report](implementation-report.md)
-- [Generated example reports](examples/output/README.md)
 
 Run `python -m unittest discover -s skills/_engine/tests -t skills/_engine -v` for automated validation. Run
 `python skills/_engine/scripts/run-example.py --output docs/examples/output` to recreate the
-three-repository demonstration and its human/machine-readable artifacts.
+three-repository demonstration and its human/machine-readable artifacts. Generated
+output is ignored by Git; the maintained sources are the runner and test fixtures.
+The Issue demonstration is a draft, not an agent-reviewed semantic result.

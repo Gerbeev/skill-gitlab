@@ -155,14 +155,5 @@ class RuntimeTarget:
     entity: str = ""
 
 
-@dataclass
-class ReportInput:
-    repository: str
-    base: str | None
-    head: str
-    changes: list[Change]
-    warnings: list[str] = field(default_factory=list)
-
-
 def record(value):
     return asdict(value)

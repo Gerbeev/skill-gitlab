@@ -78,9 +78,9 @@ def discover(root: Path, scope: Path | None, template: Path, output: Path, max_b
             continue
         if path.resolve() == template.resolve() or path.resolve().is_relative_to(output.resolve()):
             continue
-        if path.name in {"AGENTS.md", "SKILL.md", "GITLAB_ISSUE_TEMPLATE.md", "ASTRA6_IMPLEMENTATION_INSTRUCTIONS.md"}:
+        if path.name in {"AGENTS.md", "SKILL.md", "GITLAB_ISSUE_TEMPLATE.md"}:
             continue
-        if re.match(r"\d\d-.*\.md$", path.name) or path.name.startswith("."):
+        if path.name.startswith("."):
             continue
         if path.suffix.lower() not in TEXT_EXTENSIONS:
             if path.suffix.lower() in {".png", ".jpg", ".pdf", ".docx"}:
@@ -91,8 +91,6 @@ def discover(root: Path, scope: Path | None, template: Path, output: Path, max_b
             text = read_text(path, max_bytes)
         except EngineError:
             warnings.append(f"Unreadable or oversized source: {name}")
-            continue
-        if path.name.lower() in {"readme.md", "license.md", "changelog.md"} and not re.search(r"acceptance|requirement|issue|desired outcome", text, re.I):
             continue
         total += len(text.encode())
         if len(sources) >= max_sources or total > max_bytes * 10:
@@ -229,6 +227,8 @@ def _matching(slot, facts):
 def validate_interpretation(plan, template, slots, sources):
     if not isinstance(plan, dict):
         raise EngineError("Interpretation must be an object")
+    if not isinstance(plan.get("reviewed", False), bool):
+        raise EngineError("Interpretation reviewed must be a boolean")
     if plan.get("template_sha256") != hashlib.sha256(template.encode()).hexdigest():
         raise EngineError("Interpretation targets a different template; read the current template again")
     hashes = plan.get("source_sha256")
@@ -248,11 +248,12 @@ def validate_interpretation(plan, template, slots, sources):
             raise EngineError("Completed review must account for every template instruction")
     fills = plan.get("fills", {})
     empty_slots = plan.get("empty_slots", [])
+    slots_by_id = {slot.id: slot for slot in slots}
     if not isinstance(fills, dict):
         raise EngineError("Template fills must be an object")
-    if not isinstance(empty_slots, list) or set(empty_slots) - {s.id for s in slots} or set(empty_slots) & set(fills):
+    if not isinstance(empty_slots, list) or set(empty_slots) - slots_by_id.keys() or set(empty_slots) & set(fills):
         raise EngineError("Invalid explicitly empty template slots")
-    if not isinstance(fills, dict) or set(fills) - {s.id for s in slots}:
+    if set(fills) - slots_by_id.keys():
         raise EngineError("Interpretation references unknown template slots")
     for slot, items in fills.items():
         if not isinstance(items, list):
@@ -263,6 +264,8 @@ def validate_interpretation(plan, template, slots, sources):
             if "\n" in item["text"] or re.search(r"<!--|^#", item["text"]):
                 raise EngineError("Interpreted statements may not change template structure")
             citations = item.get("evidence", [])
+            if not isinstance(citations, list) or any(not isinstance(citation, dict) for citation in citations):
+                raise EngineError("Interpretation evidence must be a list of citations")
             if not citations and item["kind"] not in {"open_question", "inference"}:
                 raise EngineError("Factual interpretation requires source evidence")
             for citation in citations:
@@ -274,7 +277,7 @@ def validate_interpretation(plan, template, slots, sources):
                 start, end = citation.get("start_line"), citation.get("end_line")
                 if not isinstance(start, int) or not isinstance(end, int) or not 1 <= start <= end <= len(lines):
                     raise EngineError("Interpretation evidence range does not exist")
-            slot_info = next(s for s in slots if s.id == slot)
+            slot_info = slots_by_id[slot]
             if protected_slot(slot_info) and item["kind"] in {"assumption", "inference", "open_question"}:
                 raise EngineError("Assumptions and inference cannot become hard requirements")
     return fills, set(empty_slots)

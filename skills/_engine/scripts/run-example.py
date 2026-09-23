@@ -41,7 +41,8 @@ def run(output: Path):
         shutil.copytree(ROOT / "tests/fixtures/issue", source)
         shutil.copy2(REPOSITORY / "docs/GITLAB_ISSUE_TEMPLATE.md", source / "GITLAB_ISSUE_TEMPLATE.md")
         issue_output = work / "issue-output"
-        analyze_issue(source, issue_output)
+        issue_result = analyze_issue(source, issue_output)
+        assert issue_result["status"] == "draft"
         assert {p.name for p in issue_output.iterdir()} == {"00-issue-analysis.md", "01-generated-issue.md"}
         modified_template = work / "modified-template.md"
         modified_template.write_text("# Revised Issue\n\n## Acceptance Criteria\n\n{{requirements}}\n\n## Audit retention\n", encoding="utf-8")
@@ -78,6 +79,7 @@ def run(output: Path):
                    "checks": {"two_issue_outputs": True, "template_mutation": True, "deep_index": True,
                               "boundary_indexes": True, "no_op_reuse": True, "changed_symbol_mapping": True,
                               "cross_repository_runtime_paths": True, "issue_update_preview": True},
+                   "issue_review_status": issue_result["status"],
                    "operational_jobs_executed": False}
         write_json(output / "validation-summary.json", summary)
         write_text(output / "README.md", "# Generated local workflow example\n\n"
@@ -91,6 +93,8 @@ def run(output: Path):
                    "- [Issue update preview](mr/05-issue-update.md)\n"
                    "- [Measured validation summary](validation-summary.json)\n\n"
                    "These artifacts describe synthetic fixture changes. No operational jobs were run.\n"
+                   "Issue output is an unreviewed deterministic draft. MR findings are fixture-authored;\n"
+                   "this demonstration does not evaluate an agent's semantic reasoning.\n"
                    "Temporary source repositories and indexes are removed after generation.\n")
         return summary
 

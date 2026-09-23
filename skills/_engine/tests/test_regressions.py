@@ -13,7 +13,7 @@ from mr_impact.analysis import analyze_mr
 from mr_impact.catalog import aggregate, lookup, repository_matches
 from mr_impact.diff import map_symbols, parse_diff, validate_patch
 from mr_impact.indexing import IndexConfig, boundary_rows, build_index
-from mr_impact.issues import analyze_issue, source_fingerprints, template_instructions, template_slots, update_issue
+from mr_impact.issues import analyze_issue, source_fingerprints, template_instructions, template_slots, update_issue, validate_interpretation
 from mr_impact.models import Edge, Evidence, FileRecord, Limits, Node, ParsedFile, record
 from mr_impact.safety import EngineError, write_json
 from mr_impact.storage import Store
@@ -86,6 +86,19 @@ class RegressionTests(unittest.TestCase):
             path.write_text(json.dumps(plan))
             with self.subTest(kind=kind), self.assertRaises(EngineError):
                 analyze_issue(root, output, interpretation=path)
+
+    def test_interpretation_rejects_false_review_strings_and_malformed_citations(self):
+        template = "## Details\n{{item}}\n"
+        plan = {"template_sha256": hashlib.sha256(template.encode()).hexdigest(),
+                "fills": {"L2": [{"kind": "context", "text": "Observed behavior.", "evidence": []}]}}
+        slots = template_slots(template)
+        for reviewed in ("false", "true", 1, [], None):
+            with self.subTest(reviewed=reviewed), self.assertRaisesRegex(EngineError, "boolean"):
+                validate_interpretation(dict(plan, reviewed=reviewed), template, slots, {})
+        for citations in ("notes.md:1", ["notes.md:1"], None, {}):
+            plan["fills"]["L2"][0]["evidence"] = citations
+            with self.subTest(citations=citations), self.assertRaisesRegex(EngineError, "list of citations"):
+                validate_interpretation(plan, template, slots, {})
 
     def mappings(self, before, after, diff):
         class Symbols:

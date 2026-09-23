@@ -4,7 +4,7 @@ from pathlib import Path
 
 from .helpers import ROOT, REPOSITORY, cli
 from mr_impact.git import git
-from mr_impact.safety import EngineError, contained, redact, safe_relative
+from mr_impact.safety import EngineError, redact, safe_relative
 
 
 class SecurityTests(unittest.TestCase):
@@ -38,11 +38,6 @@ class SecurityTests(unittest.TestCase):
             text = files[0].read_text()
             self.assertTrue(text.startswith(f"---\nname: {name}\ndescription: "))
             self.assertIn(f"`{name}`", text)
-            canonical = REPOSITORY / "skills" / name / "SKILL.md"
-            self.assertIn(f"../../../skills/{name}/SKILL.md", text)
-            instructions = canonical.read_text()
-            self.assertTrue(instructions.startswith(f"---\nname: {name}\ndescription: "))
-            self.assertIn(f"`{name}`", instructions)
             import re
-            for target in re.findall(r"\]\(([^)]+)\)", instructions):
-                self.assertTrue((canonical.parent / target.split("#", 1)[0]).is_file(), target)
+            for target in re.findall(r"\]\(([^)]+)\)", text):
+                self.assertTrue((files[0].parent / target.split("#", 1)[0]).is_file(), target)

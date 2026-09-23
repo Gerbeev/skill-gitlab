@@ -40,25 +40,42 @@ The runner asserts that local and downstream jobs are found, that changed symbol
 are mapped, and that modifying a copied template changes generated headings.
 
 Skill wrapper checks verify four frontmatter names, operation routing, and that
-canonical operation instructions route to the common `skills/_engine` package. To validate discovery in a
+operation instructions reference the common engine workflows. To validate discovery in a
 specific VS Code installation, open this repository in Agent Mode and check the
 four skill names; this requires the user's Copilot environment and is not
 simulated by the Python test suite.
 
-The optional external `skill-creator` frontmatter validator requires PyYAML.
-During implementation it was run with PyYAML isolated under the ignored
-`.repository-analysis/validation-deps` directory. PyYAML is not an engine or test
-suite dependency and is not required for any of the four local workflows.
+Generated output under `docs/examples/output` is ignored by Git. Keep fixtures and
+the runner as the maintained source rather than committing reports with temporary
+repository paths, commit hashes, and stale validation counts. The example's Issue
+output is an unreviewed draft; its MR interpretation is fixture-authored.
 
 
-Audit regressions and performance measurements:
+Performance measurement (when changing indexing or traversal):
 
 ```text
-python skills/_engine/scripts/audit-repro.py
 python skills/_engine/scripts/benchmark-index.py --files 1000
 ```
 
-The audit probe now exits 0 and preserves individual observed results for all 11 bugs.
-Regression tests also cover source-bound review, patch newlines, depth/confidence
+`test_regressions.py` covers all eleven original audit defects, source-bound review,
+patch newlines, depth/confidence
 tradeoffs, artifact integrity, runtime entrypoints, and incremental package resolution.
 The benchmark measures Python allocations only; see its recorded limitations.
+
+## Agent acceptance scenarios
+
+Run these in the intended Copilot/model environment when changing skill behavior.
+Use temporary repositories and output directories. Record model/version, prompt,
+input revision, outputs, and observed failures. These are evaluation cases, not a
+claim that engine tests measure model reasoning or that these cases already passed.
+
+| Request and inputs | Observable acceptance criteria |
+|---|---|
+| `/analyze-issue`: use the Issue fixture plus `01-requirements.md`, a relevant README, an unrelated note, and a conflicting assumption; change a template instruction. | Exactly two public files; current template preserved; relevant numbered/README inputs considered; unrelated source excluded explicitly; conflicts surfaced; assumption not promoted into acceptance criteria; reviewed manifest matches current sources. |
+| `/index-repository`, then `/analyze-mr`: use the three-repository fixture and negative-exposure change from the example runner, with the generated catalog. | No-op parses zero files; only candidate repositories expand; QA names daily-risk and downstream reporting/export jobs with paths and confidence; proposed tests are not described as executed; stale or missing catalogs are disclosed. |
+| `/update-issue`: use completed MR artifacts with a validation note reporting a failure, then repeat after tampering with one supporting artifact. | Preview preserves the failure and original requirements, reports follow-ups, and makes no remote write; tampered artifacts are rejected. |
+
+Compare agent runs with and without the skill where practical. Judge evidence,
+scope, output usability, and missed runtime targets rather than exact prose or
+number of instruction steps. Exercise actual VS Code slash-command discovery
+separately from the Python wrapper checks.

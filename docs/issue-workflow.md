@@ -11,6 +11,10 @@ Default discovery reads text files directly in the project root. An explicit
 RST, CSV, logs, and JSON with count/byte limits. Images, PDF, and Word inputs are
 reported as requiring extraction; the agent must not claim to have read them
 without available image context or a provenance-preserving text export.
+Numbered notes, prior analysis, and README files remain eligible inputs; relevance
+is an explicit review decision rather than a filename or English-keyword filter.
+The planned output directory is excluded. Keep it separate from source inputs;
+review older reports elsewhere as evidence, not authoritative requirements.
 
 ```text
 python skills/_engine/scripts/mr-impact.py inspect-issue --repo REPO --source SOURCE --template TEMPLATE --output OUTPUT

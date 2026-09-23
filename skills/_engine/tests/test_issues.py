@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from .helpers import ROOT, REPOSITORY
-from mr_impact.issues import analyze_issue, extract_facts, template_slots
+from mr_impact.issues import analyze_issue, discover, extract_facts, template_slots
 from mr_impact.safety import EngineError
 
 
@@ -38,6 +38,26 @@ class IssueTests(unittest.TestCase):
         result = (self.output / "01-generated-issue.md").read_text()
         self.assertIn("retain audit rows", result)
         self.assertNotIn("negative exposure", result)
+
+    def test_source_names_do_not_discard_relevant_material(self):
+        scope = self.root / "selected"
+        scope.mkdir()
+        inputs = {
+            "01-requirements.md": "## Acceptance Criteria\nRetain audit rows.\n",
+            "README.md": "## Problem\nDaily exports lose rows.\n",
+            "02-prior-analysis.md": "## Constraint\nKeep the existing schedule.\n",
+        }
+        for name, text in inputs.items():
+            (scope / name).write_text(text, encoding="utf-8")
+        output = scope / "generated"
+        template = self.root / "GITLAB_ISSUE_TEMPLATE.md"
+        analyze_issue(self.root, output, scope)
+        # Re-running must keep prior analysis as input but exclude this run's outputs.
+        _, sources, _ = discover(self.root, scope, template, output)
+        self.assertEqual(sources, inputs)
+        result = (output / "01-generated-issue.md").read_text()
+        self.assertIn("Retain audit rows", result)
+        self.assertIn("Daily exports lose rows", result)
 
     def test_template_add_remove_rename_reorder(self):
         template = self.root / "GITLAB_ISSUE_TEMPLATE.md"
