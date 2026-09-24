@@ -87,7 +87,10 @@ EXPORTS = ("state.json", "boundary.json", "repository-index.json",
 def publication_valid(directory, state):
     try:
         manifest = read_json(directory / "manifest.json")
-        return (manifest.get("generation") == state.get("generation") and bool(state.get("generation"))
+        return (isinstance(manifest, dict) and isinstance(manifest.get("artifact_sha256"), dict)
+                and isinstance(manifest.get("statistics"), dict)
+                and all(key in manifest["statistics"] for key in ("nodes_created", "edges_created", "symbols", "boundary_entities", "warnings"))
+                and manifest.get("generation") == state.get("generation") and bool(state.get("generation"))
                 and all(manifest.get("artifact_sha256", {}).get(name) == file_digest(directory / name)
                         for name in EXPORTS))
     except (OSError, EngineError, ValueError, TypeError):

@@ -144,7 +144,7 @@ File-level seeds and containment can include neighboring definitions. This trade
 
 ### Scale and operational transport
 
-The retained benchmark covers 1,000 synthetic files and one candidate. Its historical timings were approximately 2.11 seconds for initial deep indexing, 0.12 for no-op, 0.54 for one-file update, and 1.51 for boundary indexing. These numbers predate the current integrity checks and are not current performance promises. The memory metric excludes Git and native SQLite allocations.
+The refreshed benchmark covers 1,000 synthetic files and one candidate after the corrections. This run measured approximately 2.12 seconds for initial deep indexing, 0.135 for no-op, 0.486 for one-file update, 1.47 for boundary indexing, and 2.64 for candidate expansion. These local measurements are not organization-scale performance promises. The memory metric excludes Git and native SQLite allocations. Raw results are in `docs/benchmark-results.json`.
 
 Representative organization benchmarks, total process RSS, high-degree dependency cases, concurrent usage, catalog transport, remote clone scheduling, and service-level SLAs remain unverified. Hash-validating exports adds I/O proportional to export size on no-op checks and must be included in future measurements.
 
@@ -165,3 +165,11 @@ Engine tests do not establish Copilot discovery or model reasoning quality. Run 
 The implementation is a stronger basis for engineer-assisted local analysis after these corrections. It should help most where scheduler, script, and data dependencies are explicit. Dynamic configuration and incomplete runtime definitions still require investigation; absence of a discovered dependency is not proof of no impact.
 
 The task statement's precise rules take precedence over ambiguous general wording: Issue analysis has two public outputs, Issue context does not authorize correctness scoring, and the compact reverse catalog does not imply a mandatory organization-wide method graph.
+
+## Follow-up validation
+
+- Final automated suite: **66 tests passed** in 58.735 seconds on Windows with Python 3.14.6.
+- The three-repository example passed all eight checks, found 11 runtime targets and two candidate repositories, and reused six files with zero no-op parses. MR semantic review was `reviewed`; coverage remained explicitly `partial`. The Issue example remained a draft. No operational jobs were executed.
+- Compilation, whitespace checks, and local Markdown links passed. All four skill frontmatters and their local references passed structural checks. The bundled skill validator could not run because PyYAML was unavailable, so equivalent checks for these simple frontmatters were performed directly without installing dependencies.
+- The final source/documentation scan found no Cyrillic text. The architecture review and maintained documentation are in English.
+- OS lock contention was exercised across Windows processes. The Unix lock branch and interactive Copilot behavior were not exercised in this environment.

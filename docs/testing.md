@@ -69,8 +69,8 @@ semantic Issue findings without template slots, MR review/context invalidation,
 preview status propagation, and cross-process snapshot-lock contention. These tests
 create isolated repositories and do not execute their source code or business jobs.
 
-The recorded benchmark predates export digest verification; rerun it when establishing
-current performance expectations. It is not an organization-scale acceptance result.
+The recorded benchmark includes export digest verification and operation locks.
+It remains a local synthetic baseline, not an organization-scale acceptance result.
 
 ## Agent acceptance scenarios
 

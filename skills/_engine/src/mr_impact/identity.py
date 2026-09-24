@@ -33,7 +33,7 @@ def qualify(parsed, namespaces):
     def key(value):
         scheme, separator, name = value.partition("://")
         if separator and scheme in namespaces:
-            return scheme + "://" + quote(namespaces[scheme], safe="") + "/" + name
+            return scheme + "://@" + quote(namespaces[scheme], safe="") + "/" + name
         return value
     for node in parsed.nodes:
         node.key = key(node.key)

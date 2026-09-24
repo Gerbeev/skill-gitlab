@@ -71,6 +71,9 @@ def expand(graphs, root, cache, catalog, limits, config, enabled, stack, warning
                 initial_paths, initial_confidence = {}, {}
                 for observation in observations:
                     entity = observation["entity"]
+                    if not store.db.execute("SELECT 1 FROM nodes WHERE key=? AND boundary=1", (entity,)).fetchone():
+                        warnings.append(f"Catalog boundary {entity} is absent from candidate {rid}; refresh identity settings and catalog.")
+                        continue
                     value = min(local["confidence"][entity], observation["confidence"], 60 if stale else 100)
                     seen = labels.setdefault((rid, entity), [])
                     if any(d <= depth + 1 and c >= value for d, c in seen):

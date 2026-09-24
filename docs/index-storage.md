@@ -47,7 +47,7 @@ Changed committed blobs are read with `git cat-file --batch`, avoiding a Git
 process for every file. Batches contain at most 64 files and normally 8 MB of
 content (a configured larger single-file limit can raise that byte bound).
 Per-file writes use bounded worker batches, one SQLite writer, and a transaction
-covering the run. A failure rolls back state and index changes. Large exports
+covering the run. An extraction/transaction failure rolls back state and index changes. Large exports
 stream to atomic temporary files. A final manifest binds all exports to a generation
 and their SHA-256 digests. No-op runs validate these digests and reuse intact exports.
 Missing, corrupt, or interrupted exports are recreated from SQLite without reparsing.
@@ -143,7 +143,8 @@ Optional repository-root configuration:
 The ID accepts 1-128 letters, digits, dots, underscores, or hyphens. Keep it stable
 when moving a checkout. Use the same resource namespace in all repositories that
 refer to the same external installation. Namespace values are URL-encoded; a table
-becomes `table://warehouse-qa/RISK/DAILY_EXPOSURE`. Unconfigured schemes preserve
+becomes `table://@warehouse-qa/RISK/DAILY_EXPOSURE`. The reserved `@` distinguishes
+namespaces from unqualified name components. Unconfigured schemes preserve
 their existing keys and assume a shared naming domain. Identity settings are
 data, never executable instructions, and changes invalidate the index generation.
 Re-aggregate the catalog after changing identities or namespaces. Catalog membership

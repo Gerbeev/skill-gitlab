@@ -66,8 +66,8 @@ class ArchitectureTests(unittest.TestCase):
         second = build_index(b, self.cache, "boundary")
         catalog = self.work / "catalog.sqlite"
         aggregate(catalog, [Path(first["directory"]), Path(second["directory"])])
-        self.assertEqual([r["repository"] for r in lookup(catalog, "table://warehouse-qa/APP/ORDERS")], ["payments"])
-        self.assertEqual(len(lookup(catalog, "table://warehouse-prod/APP/ORDERS")), 1)
+        self.assertEqual([r["repository"] for r in lookup(catalog, "table://@warehouse-qa/APP/ORDERS")], ["payments"])
+        self.assertEqual(len(lookup(catalog, "table://@warehouse-prod/APP/ORDERS")), 1)
 
     def test_export_failures_recover_without_reparsing(self):
         for phase in ("boundary.json", "repository-index.json", "dependency-graph.json",
@@ -104,6 +104,9 @@ class ArchitectureTests(unittest.TestCase):
         repaired = build_index(root, self.cache)
         self.assertEqual(repaired["statistics"]["files_parsed"], 0)
         self.assertTrue(publication_valid(directory, repaired["state"]))
+        (directory / "manifest.json").write_text("[]")
+        self.assertFalse(is_fresh(root, directory))
+        self.assertTrue(publication_valid(directory, build_index(root, self.cache)["state"]))
 
     def test_diamond_expansion_revisits_new_seeds_without_rebuilding(self):
         a, base = self.repo("a", {"write.sql": "INSERT INTO app.x VALUES (1);\nINSERT INTO app.z VALUES (1);\n"})
