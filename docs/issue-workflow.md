@@ -67,6 +67,17 @@ valid line ranges. Use `empty_slots` where the template requires empty optional 
 The engine recognizes a narrow empty-if-no-evidence directive itself; arbitrary prose
 instructions remain the agent's responsibility. Missing required evidence stays unresolved.
 
+Use the optional `findings` list to preserve semantic conclusions in
+`00-issue-analysis.md` independently of template slots. Each finding requires
+`kind` (`conflict`, `risk`, `readiness`, `ambiguity`, or `classification`),
+`severity` (`info`, `warning`, or `error`), `status` (`unresolved` or `resolved`),
+single-line `text`, and nonempty source `evidence` with the same citation shape
+as fills. An optional `template_section` identifies the affected section.
+For example, conflicting retention durations belong in a cited conflict finding
+even when the Issue template has no conflict section. Findings cannot cite excluded
+or out-of-scope sources. The report separates these semantic findings from lexical
+fallback checks; no findings does not establish that no risks exist.
+
 ```text
 python skills/_engine/scripts/mr-impact.py analyze-issue --repo REPO --source SOURCE --template TEMPLATE --output OUTPUT --interpretation INTERNAL_JSON --require-review
 ```

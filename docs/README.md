@@ -18,6 +18,8 @@ by an analysis command.
 [the multi-repository architecture](MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md).
 [Requirements assessment](REQUIREMENTS_AUDIT.md) records coverage, limitations,
 and the rationale for the current simplification.
+The root [architecture review](../ARCHITECTURE_REVIEW.md) records the independent
+findings, implemented corrections, and remaining production-readiness boundaries.
 
 ```text
 .github/skills/<operation>/SKILL.md   Four canonical Copilot entrypoints
@@ -41,6 +43,8 @@ python skills/_engine/scripts/mr-impact.py update-issue --issue /work/issue-anal
 
 The Issue command above produces a draft. For completed Issue delivery, follow
 the [inspection and review workflow](issue-workflow.md) and use `--require-review`.
+The MR command also produces a deterministic draft. Follow the [MR review workflow](mr-workflow.md)
+and rerun with a context-bound interpretation and `--require-review` for reviewed delivery.
 
 Use Windows paths on Windows, and quote paths containing spaces. All relative
 CLI paths are relative to the calling working directory. `--repo` defaults to the

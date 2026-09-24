@@ -62,6 +62,16 @@ patch newlines, depth/confidence
 tradeoffs, artifact integrity, runtime entrypoints, and incremental package resolution.
 The benchmark measures Python allocations only; see its recorded limitations.
 
+`test_architecture.py` exercises local-path catalog isolation, stable logical IDs,
+resource namespaces, interruption at every export-publication phase, corrupt export
+recovery, converging and base/head dependency paths, total expansion limits,
+semantic Issue findings without template slots, MR review/context invalidation,
+preview status propagation, and cross-process snapshot-lock contention. These tests
+create isolated repositories and do not execute their source code or business jobs.
+
+The recorded benchmark predates export digest verification; rerun it when establishing
+current performance expectations. It is not an organization-scale acceptance result.
+
 ## Agent acceptance scenarios
 
 Run these in the intended Copilot/model environment when changing skill behavior.

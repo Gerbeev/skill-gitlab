@@ -112,3 +112,43 @@ the report asks for them rather than inventing executable commands or expected v
 `follow_up` entries have IDs, status, revision evidence, and an action. Update Issue
 preserves these entries and verifies hashes of all eight supporting MR artifacts.
 Regenerate older MR output before updating an Issue with the strengthened artifact contract.
+
+## Completed semantic review
+
+The interpretation example above is a legacy draft. For completed delivery, copy
+the entire `review_context` object from the current `mr-context.json`, add
+`"reviewed": true`, and supply `reviewed_changes` with an entry for every zero-based
+change index. Each entry needs `status` (`analyzed`, `unresolved`, or `not_applicable`)
+and a nonempty `reason`. For example:
+
+```json
+{
+  "0": {"status": "analyzed", "reason": "The changed guard precedes persistence; boundary cases are specified."},
+  "1": {"status": "unresolved", "reason": "The deployment environment is not documented."}
+}
+```
+
+Rerun with `--interpretation INTERNAL_JSON --require-review`. A missing review,
+missing change decision, or stale context fails before report publication. The
+review context binds the diff, revisions, Issue digest, catalog digest, limits,
+configuration, schema/adapter versions, index generations, and discovered coverage.
+Changing those inputs requires a new review. Copy the context without manually
+editing its digests. An empty findings list is acceptable when reasoned change
+decisions explain why no behavioral scenario is justified.
+
+`analysis_status` is `draft` or `reviewed`. `semantic_review_status` is `pending`,
+`reviewed`, or `reviewed_with_gaps`. `coverage_status` is `partial` when warnings
+exist, otherwise `local_only` without a catalog or `bounded` with one. None asserts
+exhaustive completeness or successful execution. These statuses appear in reports
+and the Issue-update preview. Review remains an agent attestation, not proof that
+semantic claims are true. Confidence numbers express detector strength rather
+than calibrated probabilities of runtime impact.
+
+## Repeated candidate expansion
+
+Candidate indexing and incoming-seed processing are separate. Later frontiers and
+base/head graphs may supply additional seeds to an already indexed repository.
+Useful confidence/cross-depth alternatives are processed within `--max-expansions`
+as well as the existing candidate, hop, node, and edge budgets. Local `file://`
+identities never serve as organization matches. Operation locks protect candidate
+stores while they are used; unavailable or busy candidates produce explicit warnings.

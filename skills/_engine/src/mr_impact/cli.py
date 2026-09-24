@@ -26,7 +26,7 @@ def _index_options(parser):
 
 def _limits_options(parser):
     for flag, default in (("max-depth", 8), ("max-nodes", 1000), ("max-edges", 4000),
-                          ("confidence", 30), ("max-candidates", 20), ("cross-depth", 2)):
+                          ("confidence", 30), ("max-candidates", 20), ("cross-depth", 2), ("max-expansions", 100)):
         parser.add_argument("--" + flag, type=int, default=default)
     parser.add_argument("--edge-type", action="append", default=[])
 
@@ -61,6 +61,7 @@ def parser():
     mr.add_argument("--catalog", type=Path)
     mr.add_argument("--issue", type=Path)
     mr.add_argument("--interpretation", type=Path)
+    mr.add_argument("--require-review", action="store_true")
     mr.add_argument("--output", type=Path, required=True)
     mr.add_argument("--no-expand", action="store_true")
     _index_options(mr)
@@ -97,7 +98,7 @@ def _config(args):
 
 
 def _limits(args):
-    return Limits(**{key: getattr(args, key) for key in ("max_depth", "max_nodes", "max_edges", "confidence", "max_candidates", "cross_depth")},
+    return Limits(**{key: getattr(args, key) for key in ("max_depth", "max_nodes", "max_edges", "confidence", "max_candidates", "cross_depth", "max_expansions")},
                   edge_types=tuple(args.edge_type))
 
 
@@ -114,7 +115,7 @@ def main(argv=None):
             result = build_index(args.repo, args.cache, "boundary" if args.boundary else "deep", args.ref, args.worktree, _config(args))
         elif args.operation == "analyze-mr":
             result = analyze_mr(args.repo, args.output, args.base, args.head, args.patch, args.commit, args.cache,
-                                args.catalog, args.issue, _limits(args), _config(args), not args.no_expand, args.interpretation)
+                                args.catalog, args.issue, _limits(args), _config(args), not args.no_expand, args.interpretation, args.require_review)
         elif args.operation == "update-issue":
             result = update_issue(args.issue, args.analysis, args.output, args.target, args.validation)
         elif args.operation == "index-organization":
@@ -123,6 +124,7 @@ def main(argv=None):
             if not (args.index / "repository-index.sqlite").is_file():
                 raise EngineError("Repository index does not exist")
             with Store(args.index / "repository-index.sqlite") as store:
+                store.db.execute("BEGIN")
                 result = store.traverse(args.seed, _limits(args))
         elif args.operation == "inspect-issue":
             import hashlib

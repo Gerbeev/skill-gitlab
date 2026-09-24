@@ -5,6 +5,8 @@ import sqlite3
 from pathlib import Path
 
 from .indexing import boundary_rows
+from .identity import external_entity
+from .locking import locked_catalog
 from .safety import EngineError, validate_output, write_json
 from .storage import Store
 
@@ -31,6 +33,7 @@ def connect(path):
     return db
 
 
+@locked_catalog
 def aggregate(catalog: Path, directories: list[Path], replace=False):
     db = connect(catalog)
     try:
@@ -42,6 +45,7 @@ def aggregate(catalog: Path, directories: list[Path], replace=False):
                 if not (directory / "repository-index.sqlite").is_file():
                     raise EngineError("Repository index does not exist")
                 with Store(directory / "repository-index.sqlite") as store:
+                    store.db.execute("BEGIN")
                     state = store.state()
                     if not state:
                         raise EngineError("Repository index has no completed state")
@@ -63,6 +67,9 @@ def aggregate(catalog: Path, directories: list[Path], replace=False):
 
 
 def lookup(catalog: Path, entity: str, confidence=30, limit=20, exclude=()):
+    # Older catalogs may contain local file identities. Never match them globally.
+    if not external_entity(entity):
+        return []
     if not catalog.is_file():
         raise EngineError("Organization catalog does not exist")
     db = sqlite3.connect(f"{catalog.resolve().as_uri()}?mode=ro", uri=True)
@@ -89,7 +96,7 @@ def repository_matches(catalog: Path, repository: str, entities: list[str], conf
     db.row_factory = sqlite3.Row
     try:
         matches = []
-        ordered = sorted(set(entities))
+        ordered = sorted({entity for entity in entities if external_entity(entity)})
         for offset in range(0, len(ordered), 400):
             chunk = ordered[offset:offset + 400]
             placeholders = ",".join("?" for _ in chunk)

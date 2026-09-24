@@ -56,11 +56,14 @@ def run(output: Path):
         context = json.loads((mr_output / "mr-context.json").read_text())
         change_index = next(i for i, change in enumerate(context["changes"]) if change["new_path"] == "src/RiskWriter.scala")
         interpretation = work / "mr-interpretation.json"
-        write_json(interpretation, {"head": head, "diff_sha256": context["diff_sha256"], "findings": [{
+        write_json(interpretation, {"head": head, "diff_sha256": context["diff_sha256"],
+            "reviewed": True, "review_context": context["review_context"],
+            "reviewed_changes": {str(i): {"status": "analyzed", "reason": "Fixture change inspected for runtime and QA consequences."}
+                                 for i in range(len(context["changes"]))}, "findings": [{
             "change_index": change_index, "hunk_index": 0, "classification": "confirmed",
             "summary": "The writer now checks that amount is nonnegative before constructing the INSERT statement.",
             "validation": "Run daily-risk with amounts -1, 0, and 1. Verify rejection occurs before persistence for -1, and the guard permits 0 and 1. Inspect downstream reporting for the affected partition."}]})
-        result = analyze_mr(a, mr_output, base, head, cache=cache, catalog=catalog, issue=issue, interpretation=interpretation)
+        result = analyze_mr(a, mr_output, base, head, cache=cache, catalog=catalog, issue=issue, interpretation=interpretation, require_review=True)
         runtime = json.loads((mr_output / "runtime-impact.json").read_text())["targets"]
         names = {target["target"] for target in runtime}
         required = {"daily-risk", "DAILY_RISK_JOB", "REPORT_GENERATION_EOD", "REGULATORY_EXPORT_JOB"}

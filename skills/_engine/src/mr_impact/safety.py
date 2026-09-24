@@ -3,11 +3,20 @@
 import json
 import os
 import re
+import hashlib
 from pathlib import Path, PurePosixPath
 
 
 class EngineError(Exception):
     """An actionable input or system failure, safe to show in the CLI."""
+
+
+def file_digest(path: Path):
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(65536), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def validate_output(path: Path):

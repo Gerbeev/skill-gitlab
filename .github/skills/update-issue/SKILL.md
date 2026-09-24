@@ -18,4 +18,5 @@ Read [the shared update workflow](../../../docs/workflow.md#issue-update) for pr
 
 Return `05-issue-update.md`. Preserve original requirements, uncertainty, and the distinction between
 proposed QA work and completed validation. Describe newly observed behavior factually for review.
+Preserve MR semantic-review and coverage status; a draft or partial analysis remains qualified in the preview.
 This engine generates local previews and has no remote GitLab write operation.

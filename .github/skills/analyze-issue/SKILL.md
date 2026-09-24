@@ -18,6 +18,8 @@ Use `inspect-issue`, then supply a source-bound interpretation with `--require-r
 as described in the workflow. Standalone extraction is a draft, not a completed
 semantic review. Keep relevance decisions and template-instruction review in that
 internal interpretation; do not silently omit numbered notes or prior analysis.
+Record semantic conflicts, risks, and readiness findings in the interpretation's `findings`
+collection so they reach the analysis report even without a corresponding template slot.
 
 Return exactly `00-issue-analysis.md` and `01-generated-issue.md` as the two required
 user-facing outputs. Keep internal interpretation data in the analysis cache.

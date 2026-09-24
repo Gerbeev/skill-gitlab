@@ -280,7 +280,36 @@ def validate_interpretation(plan, template, slots, sources):
             slot_info = slots_by_id[slot]
             if protected_slot(slot_info) and item["kind"] in {"assumption", "inference", "open_question"}:
                 raise EngineError("Assumptions and inference cannot become hard requirements")
+    validate_findings(plan, sources)
     return fills, set(empty_slots)
+
+
+def validate_findings(plan, sources):
+    findings = plan.get("findings", [])
+    if not isinstance(findings, list) or len(findings) > 500:
+        raise EngineError("Issue findings must be a bounded list")
+    for finding in findings:
+        if (not isinstance(finding, dict)
+                or finding.get("kind") not in {"conflict", "risk", "readiness", "ambiguity", "classification"}
+                or finding.get("severity") not in {"info", "warning", "error"}
+                or finding.get("status") not in {"unresolved", "resolved"}
+                or not isinstance(finding.get("text"), str) or not finding["text"].strip()
+                or "\n" in finding["text"]):
+            raise EngineError("Invalid semantic Issue finding")
+        if "template_section" in finding and not isinstance(finding["template_section"], str):
+            raise EngineError("Issue finding template section must be text")
+        citations = finding.get("evidence")
+        if not isinstance(citations, list) or not citations:
+            raise EngineError("Semantic Issue findings require source evidence")
+        for citation in citations:
+            if not isinstance(citation, dict) or citation.get("file") not in sources:
+                raise EngineError("Issue finding evidence is outside the source scope")
+            if plan.get("source_decisions", {}).get(citation["file"], {}).get("use") == "excluded":
+                raise EngineError("Issue finding cites an excluded source")
+            start, end = citation.get("start_line"), citation.get("end_line")
+            if type(start) is not int or type(end) is not int or not 1 <= start <= end <= len(sources[citation["file"]].splitlines()):
+                raise EngineError("Issue finding evidence range does not exist")
+    return findings
 
 
 def analyze_issue(root: Path, output: Path, scope: Path | None = None, template: Path | None = None,
@@ -357,10 +386,19 @@ def analyze_issue(root: Path, output: Path, scope: Path | None = None, template:
         report.append("No usable source statements were found. Requirements remain unresolved.")
     report += ["", "## Template population", ""]
     for label, kind, text, evidence in records[:120]:
-        report.append(f"- **{label}** ({kind}): {evidence or 'Explicitly unresolved/inferred; no source evidence'}.")
+        report.append(f"- **{label}** ({kind}): {text} Evidence: {evidence or 'Explicitly unresolved/inferred; no source evidence'}.")
     if len(records) > 120:
         report.append(f"- {len(records) - 120} additional fills are present in the generated Issue.")
-    report += ["", "## Gaps, ambiguity, and readiness", ""]
+    report += ["", "## Semantic findings", ""]
+    for finding in (plan or {}).get("findings", []):
+        citations = ", ".join(f"{e['file']}:{e['start_line']}-{e['end_line']}" for e in finding["evidence"])
+        report.append(f"- **{finding['kind']} / {finding['severity']} / {finding['status']}**: {finding['text']} ({citations}).")
+        if finding.get("template_section"):
+            report.append(f"  Template section: {finding['template_section']}.")
+    if not (plan or {}).get("findings"):
+        report.append("No semantic findings supplied; this does not prove the absence of conflicts or risks.")
+    report += ["", "## Gaps, ambiguity, and readiness", "",
+               "The following checks are lexical fallback observations, not semantic review findings.", ""]
     report.extend(f"- Missing evidence for template field: {label}." for label in dict.fromkeys(unresolved))
     questions = [f for f in facts if f.kind in {"assumption", "open_question"}]
     report.extend(f"- Clarify {f.kind}: {f.text} (`{f.file}:{f.line}`)." for f in questions)
@@ -413,6 +451,9 @@ def update_issue(issue: Path, analysis: Path, output: Path, target="Unspecified 
     summary += [f"- {finding['classification']}: {finding['reason']} (`{finding['file']}`, hunk {finding['hunk'] + 1})." for finding in context.get("behavior", [])]
     lines = ["# Issue update preview", "", f"Target Issue: {target}", "Intended operation: append an implementation note locally.",
              "Remote write: disabled; this engine has no remote write adapter.", "Contract changes: none proposed or applied.",
+             f"MR analysis status: {context.get('analysis_status', 'draft')}.",
+             f"Semantic review status: {context.get('semantic_review_status', 'not recorded')}.",
+             f"Impact coverage status: {context.get('coverage_status', 'unknown')}.",
              "", "## Proposed Markdown", "", "### Observed implementation", "", "\n".join(summary),
              "", "### Validation evidence", "", evidence, "", "### Runtime scope", ""]
     lines += [f"- {t['target']} ({t['repository']}): {t['impact']}; confidence {t['confidence']}/100." for t in runtime["targets"]]

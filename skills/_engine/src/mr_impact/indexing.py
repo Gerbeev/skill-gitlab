@@ -6,13 +6,16 @@ import json
 import itertools
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .adapters import ADAPTERS, language, parse
 from .git import batch_blobs, content, repository_id, snapshot
+from .identity import external_entity, qualify, settings
+from .locking import locked_repository
 from .models import ADAPTER_VERSION, SCHEMA_VERSION, FileRecord, ParsedFile, RepositoryState, record
-from .safety import EngineError, validate_output, write_json
+from .safety import EngineError, file_digest, read_json, validate_output, write_json
 from .storage import Store
 
 EXCLUDED = {".git", ".obsidian", ".repository-analysis", ".mr-analysis", "node_modules", "vendor", ".venv",
@@ -47,7 +50,10 @@ class IndexConfig:
 def index_dir(root: Path, cache: Path | None = None, slot: str = "current"):
     if slot not in {"current", "base"}:
         raise EngineError("Invalid index slot")
-    return (cache or root / ".repository-analysis") / "repositories" / repository_id(root) / slot
+    identity = repository_id(root)
+    if settings(root).get("repository_id"):
+        identity += "-" + hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:12]
+    return (cache or root / ".repository-analysis") / "repositories" / identity / slot
 
 
 def fingerprint(entries, config):
@@ -58,6 +64,7 @@ def fingerprint(entries, config):
     return digest.hexdigest()
 
 
+@locked_repository
 def is_fresh(root, directory, ref="HEAD", worktree=False, config=None, mode=None):
     if not (directory / "repository-index.sqlite").exists():
         return False
@@ -69,7 +76,22 @@ def is_fresh(root, directory, ref="HEAD", worktree=False, config=None, mode=None
     commit, entries = snapshot(root, ref, worktree, config.accepts, config.max_file_bytes)
     return (old["commit"] == commit and old["fingerprint"] == fingerprint(entries, config)
             and old["config"] == record(config) and old["schema_version"] == SCHEMA_VERSION
-            and old["adapter_version"] == ADAPTER_VERSION and (mode is None or old["mode"] == mode))
+            and old["adapter_version"] == ADAPTER_VERSION and old.get("identity", {}) == settings(root)
+            and publication_valid(directory, old) and (mode is None or old["mode"] == mode))
+
+
+EXPORTS = ("state.json", "boundary.json", "repository-index.json",
+           "graph/dependency-graph.json", "graph/graph-manifest.json")
+
+
+def publication_valid(directory, state):
+    try:
+        manifest = read_json(directory / "manifest.json")
+        return (manifest.get("generation") == state.get("generation") and bool(state.get("generation"))
+                and all(manifest.get("artifact_sha256", {}).get(name) == file_digest(directory / name)
+                        for name in EXPORTS))
+    except (OSError, EngineError, ValueError, TypeError):
+        return False
 
 
 def _export_array(path, rows):
@@ -101,6 +123,8 @@ def boundary_rows(store):
     for row in store.db.execute("""SELECT n.key entity,n.type,d.file,d.evidence
                                   FROM nodes n JOIN definitions d ON n.key=d.node
                                   WHERE n.boundary=1 ORDER BY n.key,d.file"""):
+        if not external_entity(row["entity"]):
+            continue
         evidence = json.loads(row["evidence"])
         yield {"entity": row["entity"], "type": row["type"], "role": "DEFINES",
                "source": "file://" + row["file"], "confidence": evidence["confidence"], "evidence": evidence}
@@ -108,10 +132,13 @@ def boundary_rows(store):
                                   FROM nodes n JOIN edges e ON n.key=e.target WHERE n.boundary=1
                                   ORDER BY n.key,e.source,e.type,e.file"""):
         result = dict(row)
+        if not external_entity(result["entity"]):
+            continue
         result["evidence"] = json.loads(result["evidence"])
         yield result
 
 
+@locked_repository
 def build_index(root: Path, cache: Path | None = None, mode="deep", ref="HEAD", worktree=False,
                 config: IndexConfig | None = None, slot="current"):
     root = root.resolve()
@@ -130,18 +157,18 @@ def build_index(root: Path, cache: Path | None = None, mode="deep", ref="HEAD", 
              "files_skipped": len(entries) - len(selected), "files_deleted": 0, "warnings": []}
     state = record(RepositoryState(repository_id(root), str(root), commit, mode, fingerprint(entries, config), record(config)))
     state["worktree"] = worktree
+    state["identity"] = settings(root)
+    state["generation"] = hashlib.sha256(json.dumps(state, sort_keys=True).encode()).hexdigest()
     with Store(directory / "repository-index.sqlite") as store:
         old = store.state()
-        artifacts = ["manifest.json", "state.json", "boundary.json", "repository-index.json",
-                     "graph/dependency-graph.json", "graph/graph-manifest.json"]
-        if old == state and all((directory / name).is_file() for name in artifacts):
-            from .safety import read_json
+        published = publication_valid(directory, state)
+        if old == state and published:
             prior = read_json(directory / "manifest.json")["statistics"]
             stats.update({key: prior[key] for key in ("nodes_created", "edges_created", "symbols", "boundary_entities", "warnings")})
             stats["files_reused"] = len(selected)
             stats["elapsed_seconds"] = round(time.monotonic() - started, 3)
             return {"directory": str(directory), "state": state, "statistics": stats}
-        rebuild = not old or any(old.get(k) != state[k] for k in ("mode", "schema_version", "adapter_version", "config"))
+        rebuild = not old or any(old.get(k) != state[k] for k in ("mode", "schema_version", "adapter_version", "config", "identity"))
         with store.db:
             if rebuild:
                 for table in ("files", "symbols", "definitions", "edges", "nodes"):
@@ -172,7 +199,8 @@ def build_index(root: Path, cache: Path | None = None, mode="deep", ref="HEAD", 
                     if "Binary" in str(exc):
                         return path, entry, ParsedFile(warnings=[f"Binary file skipped: {path}"]), True
                     raise
-                return path, entry, parse(path, text, mode, commit, config.adapters), False
+                return path, entry, qualify(parse(path, text, mode, commit, config.adapters),
+                                           state["identity"].get("namespaces", {})), False
 
             # Byte and count bounds cap in-flight blobs and parsed records.
             def batches():
@@ -215,18 +243,21 @@ def build_index(root: Path, cache: Path | None = None, mode="deep", ref="HEAD", 
         stats["boundary_entities"] = store.db.execute("SELECT count(*) FROM nodes WHERE boundary=1").fetchone()[0]
         graph_dir = directory / "graph"
         graph_dir.mkdir(exist_ok=True)
-        changed = rebuild or stats["files_parsed"] or stats["files_deleted"] or pending
+        changed = not published or rebuild or stats["files_parsed"] or stats["files_deleted"] or pending
         if changed or not (directory / "boundary.json").exists():
-            _export_array(directory / "boundary.json", boundary_rows(store))
+            with closing(boundary_rows(store)) as rows:
+                _export_array(directory / "boundary.json", rows)
         if changed or not (directory / "repository-index.json").exists():
-            _export_array(directory / "repository-index.json", store.db.execute("SELECT * FROM files ORDER BY path"))
+            with closing(store.db.execute("SELECT * FROM files ORDER BY path")) as rows:
+                _export_array(directory / "repository-index.json", rows)
         if changed or not (graph_dir / "dependency-graph.json").exists():
-            _export_array(graph_dir / "dependency-graph.json", (
-                dict(row) | {"evidence": json.loads(row["evidence"])}
-                for row in store.db.execute("SELECT source,target,type,confidence,evidence FROM edges ORDER BY source,target,type")))
-        write_json(graph_dir / "graph-manifest.json", {"schema_version": SCHEMA_VERSION, "commit": commit,
+            with closing(store.db.execute("SELECT source,target,type,confidence,evidence FROM edges ORDER BY source,target,type")) as rows:
+                _export_array(graph_dir / "dependency-graph.json", (
+                    dict(row) | {"evidence": json.loads(row["evidence"])} for row in rows))
+        write_json(graph_dir / "graph-manifest.json", {"schema_version": SCHEMA_VERSION, "commit": commit, "generation": state["generation"],
                                                       "nodes": stats["nodes_created"], "edges": stats["edges_created"]})
     stats["elapsed_seconds"] = round(time.monotonic() - started, 3)
-    write_json(directory / "manifest.json", state | {"statistics": stats})
     write_json(directory / "state.json", state)
+    write_json(directory / "manifest.json", state | {"statistics": stats,
+               "artifact_sha256": {name: file_digest(directory / name) for name in EXPORTS}})
     return {"directory": str(directory), "state": state, "statistics": stats}

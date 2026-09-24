@@ -235,14 +235,16 @@ class RegressionTests(unittest.TestCase):
         root = self.work / "repo"
         root.mkdir()
         (root / "standalone.sh").write_text("echo ready\n")
+        (root / "job.jil").write_text("insert_job: STANDALONE job_type: c\ncommand: sh standalone.sh\n")
         initialize(root)
         result = build_index(root, self.work / "cache", "boundary")
         catalog = self.work / "catalog.sqlite"
         aggregate(catalog, [Path(result["directory"])])
-        matches = lookup(catalog, "file://standalone.sh")
+        self.assertEqual(lookup(catalog, "file://standalone.sh"), [])
+        matches = lookup(catalog, "autosys://STANDALONE")
         self.assertEqual(len(matches), 1)
         self.assertEqual(matches[0]["role"], "DEFINES")
-        self.assertEqual(repository_matches(catalog, matches[0]["repository"], ["file://standalone.sh"])[0]["entity"], "file://standalone.sh")
+        self.assertEqual(repository_matches(catalog, matches[0]["repository"], ["autosys://STANDALONE"])[0]["entity"], "autosys://STANDALONE")
 
     def test_redacted_json_preserves_nested_structure(self):
         output = self.work / "data.json"

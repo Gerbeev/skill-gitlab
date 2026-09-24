@@ -68,10 +68,12 @@ between a patch and its indexed head is an error. No patch is applied.
 `--catalog` enables bounded cross-repository discovery; `--no-expand` reports
 candidates without deep indexing them. Graph options are `--max-depth`,
 `--max-nodes`, `--max-edges`, `--confidence 0..100`, and repeatable `--edge-type`.
-`--max-candidates` and `--cross-depth` bound organization expansion.
+`--max-candidates`, `--cross-depth`, and `--max-expansions` bound organization expansion.
 
 Optional `--interpretation JSON` adds cited agent behavioral findings after the
 deterministic pass. Read [MR workflow](mr-workflow.md).
+Completed semantic delivery uses a context-bound interpretation and `--require-review`.
+Draft and reviewed-with-gaps states remain explicit in reports and Issue previews.
 
 The output contains four Markdown reports and five machine-readable artifacts:
 

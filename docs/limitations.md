@@ -20,16 +20,17 @@ The four local workflows are implemented. The following boundaries are explicit:
 - Runtime reachability is conservative. File containment can include neighboring
   definitions; static paths do not prove an executable branch runs. One retained
   path per reached node is a bounded explanation, not all possible paths.
-- Each candidate repository is expanded once from shared boundaries in its first
-  reached frontier. Later incoming paths may expose additional disconnected flows;
-  analyze that repository separately or broaden the seed scope for those cases.
+- Candidate indexes are reused while new boundary seeds can trigger additional
+  bounded traversals. Hop, candidate, node/edge, and total-expansion limits still
+  constrain coverage and are reported when reached.
 - Catalog inputs are local committed index directories. Detached boundary-JSON
-  transport/import, durable organization repository IDs, remote clones, and
+  transport/import, remote clones, and
   service-level catalog scheduling are future extensions.
 - Index metadata enumeration is bounded but held in memory; graph traversal and
   exports are SQLite-backed/streamed. Commit tree metadata above the Git output
   limit is rejected. A 1,000-file synthetic benchmark is recorded; billion-line or
-  thousand-repository performance has not been benchmarked. No-op runs reuse parses/exports but still check Git metadata.
+  thousand-repository performance has not been benchmarked. No-op runs reuse parses/exports
+  but still check Git metadata and stream export hashes for integrity.
 - Root commits use an empty-tree comparison. Merge commits use their first parent.
   External binary patches require Git-range analysis; patches without a base cannot
   verify old-side claims. Analysis never applies patches or inspects uncommitted MR
@@ -46,3 +47,8 @@ None is required to run the demonstrated local workflow.
 
 Standalone Issue generation returns a draft. Completed semantic delivery requires
 the source-bound interpretation and `--require-review` described in the Issue workflow.
+MR semantic delivery likewise requires a context-bound review and a decision for
+every change. A reviewed result may still have unresolved findings and partial
+coverage. Repository IDs and resource namespaces can be configured, but correct
+namespace governance remains an operator responsibility. OS locks serialize shared
+repository use; immutable multi-revision caches remain a future optimization.

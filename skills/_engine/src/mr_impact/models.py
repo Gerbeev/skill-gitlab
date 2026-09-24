@@ -5,7 +5,7 @@ from enum import IntEnum
 from typing import Any
 
 SCHEMA_VERSION = 1
-ADAPTER_VERSION = "2"
+ADAPTER_VERSION = "3"
 
 
 class Confidence(IntEnum):
@@ -133,11 +133,13 @@ class Limits:
     edge_types: tuple[str, ...] = ()
     max_candidates: int = 20
     cross_depth: int = 2
+    max_expansions: int = 100
 
     def __post_init__(self):
         if not (0 <= self.max_depth <= 100 and 1 <= self.max_nodes <= 100000
                 and 1 <= self.max_edges <= 1000000 and 0 <= self.confidence <= 100
-                and 0 <= self.max_candidates <= 1000 and 0 <= self.cross_depth <= 10):
+                and 0 <= self.max_candidates <= 1000 and 0 <= self.cross_depth <= 10
+                and 1 <= self.max_expansions <= 10000):
             raise ValueError("Invalid traversal limits")
 
 

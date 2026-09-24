@@ -7,6 +7,13 @@ Historical implementation prompts and fix reports are not additional requirement
 
 ## Result
 
+Follow-up: the root `ARCHITECTURE_REVIEW.md` records six additional architectural
+findings and their implementation. Local paths no longer match globally; identity
+namespaces, recoverable generation manifests, operation locks, repeated-seed
+expansion, semantic Issue findings, and explicit MR review/coverage states now
+strengthen the earlier baseline. Historical test counts below describe that earlier
+revision; current regression commands and scope are in `testing.md`.
+
 The four local operations form a useful, coherent implementation of the core
 workflow. They do not establish the entire production quality bar in section 14:
 compiler semantics, representative organization-scale load, interactive Copilot

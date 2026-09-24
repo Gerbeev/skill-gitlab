@@ -7,13 +7,15 @@ from contextlib import ExitStack
 from pathlib import Path
 
 from .adapters import RUNTIME_TYPES
-from .catalog import lookup, repository_matches
+from .expansion import expand
+from .locking import catalog_lock, locked_repository
 from .diff import map_symbols, parse_diff, validate_patch
 from .git import git, repository_id, resolve, snapshot
 from .indexing import IndexConfig, build_index
 from .issues import extract_facts
-from .models import Limits, RuntimeTarget, record
-from .safety import EngineError, read_json, read_text, write_json, write_text
+from .models import ADAPTER_VERSION, SCHEMA_VERSION, Limits, RuntimeTarget, record
+from .review import REVIEW_CONTRACT_VERSION, validate_mr_review
+from .safety import EngineError, file_digest, read_json, read_text, write_json, write_text
 from .storage import Store
 
 
@@ -83,10 +85,11 @@ def _behavior(changes):
     return results
 
 
+@locked_repository
 def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", patch: Path | None = None,
                commit: str | None = None, cache: Path | None = None, catalog: Path | None = None,
                issue: Path | None = None, limits: Limits | None = None, config: IndexConfig | None = None,
-               expand_candidates=True, interpretation: Path | None = None):
+               expand_candidates=True, interpretation: Path | None = None, require_review=False):
     root = root.resolve()
     limits = limits or Limits()
     config = config or IndexConfig()
@@ -151,71 +154,19 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
             if group["truncated"]:
                 warnings.append("Local graph traversal reached a configured limit; impact coverage is partial.")
         candidates = []
+        catalog_digest = None
         if catalog:
-            seen = {repository_id(root)}
-            frontier = [(group, 0) for group in graphs]
-            while frontier:
-                local, depth = frontier.pop(0)
-                if depth >= limits.cross_depth:
-                    if any(n["boundary"] for n in local["nodes"]):
-                        warnings.append("Cross-repository depth limit reached; further downstream impact is not explored.")
-                    continue
-                boundaries = [n for n in local["nodes"] if n["boundary"] and local["confidence"][n["key"]] >= limits.confidence]
-                for node in boundaries:
-                    path_conf = local["confidence"][node["key"]]
-                    remaining = limits.max_candidates - len(candidates)
-                    matches = lookup(catalog, node["key"], limits.confidence, max(1, remaining + 1), tuple(seen))
-                    for match in matches:
-                        rid = match["repository"]
-                        if rid in seen:
-                            continue
-                        if len(candidates) >= limits.max_candidates:
-                            warnings.append("Cross-repository candidate limit reached; organization coverage is partial.")
-                            break
-                        seen.add(rid)
-                        candidates.append({"repository": rid, "entity": node["key"], "role": match["role"],
-                                           "confidence": min(path_conf, match["confidence"]), "expanded": False,
-                                           "catalog_commit": match["commit_id"]})
-                        if not expand_candidates:
-                            warnings.append(f"Candidate {rid} requires deep expansion to identify runtime targets.")
-                            continue
-                        candidate_root = Path(match["root"])
-                        if not candidate_root.is_dir():
-                            warnings.append(f"Candidate repository unavailable locally: {rid}")
-                            continue
-                        try:
-                            current_head = resolve(candidate_root, "HEAD")
-                            stale = current_head != match["commit_id"]
-                            if stale:
-                                warnings.append(f"Stale catalog candidate {rid}; using recorded revision {match['commit_id']} for reproducibility.")
-                            shared = repository_matches(catalog, rid, [n["key"] for n in boundaries], limits.confidence)
-                            initial_paths, initial_confidence = {}, {}
-                            for observation in shared:
-                                entity = observation["entity"]
-                                confidence = min(local["confidence"][entity], observation["confidence"], 60 if stale else 100)
-                                bridge = {"from": entity, "to": entity, "type": "ORGANIZATION_LOOKUP",
-                                          "direction": "reverse", "confidence": confidence,
-                                          "evidence": observation["evidence"], "repository": rid,
-                                          "catalog_commit": match["commit_id"]}
-                                initial_paths[entity] = local["paths"][entity] + [bridge]
-                                initial_confidence[entity] = confidence
-                            candidate_index = build_index(candidate_root, cache, "deep", match["commit_id"], config=config)
-                            with Store(Path(candidate_index["directory"]) / "repository-index.sqlite") as candidate_store:
-                                subgraph = candidate_store.traverse(list(initial_paths), limits, initial_paths, initial_confidence)
-                        except EngineError:
-                            warnings.append(f"Candidate {rid} could not be indexed at its catalog revision.")
-                            continue
-                        candidates[-1]["expanded"] = True
-                        candidates[-1]["entities"] = list(initial_paths)
-                        graphs.append({"repository": rid, "revision": match["commit_id"], **subgraph})
-                        targets.extend(targets_from_graph(subgraph, rid))
-                        if subgraph["truncated"]:
-                            warnings.append(f"Candidate {rid} graph traversal reached a limit.")
-                        frontier.append((subgraph, depth + 1))
+            stack.enter_context(catalog_lock(catalog))
+            catalog_digest = file_digest(catalog)
+            candidates, expanded = expand(graphs, root, cache, catalog, limits, config,
+                                           expand_candidates, stack, warnings)
+            graphs.extend(expanded)
+            for group in expanded:
+                targets.extend(targets_from_graph(group, group["repository"]))
         unique = {}
-        defined_entities = {t["entity"] for t in targets if t["impact"] != "UNRESOLVED"}
+        defined_entities = {(t["repository"], t["entity"]) for t in targets if t["impact"] != "UNRESOLVED"}
         for target in targets:
-            if target["impact"] == "UNRESOLVED" and target["entity"] in defined_entities:
+            if target["impact"] == "UNRESOLVED" and (target["repository"], target["entity"]) in defined_entities:
                 continue
             key = (target["repository"], target["type"], target["target"])
             if key not in unique or target["confidence"] > unique[key]["confidence"]:
@@ -253,14 +204,29 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
                                          "finding": "Lexical context association; manually verify semantic relevance." if related else "No lexical association found; context remains unresolved."})
         behavior = _behavior(changes)
         scenarios = []
+        review_context = {"contract_version": REVIEW_CONTRACT_VERSION, "schema_version": SCHEMA_VERSION,
+                          "adapter_version": ADAPTER_VERSION, "base": base_id, "head": head_id,
+                          "diff_sha256": hashlib.sha256(diff.encode()).hexdigest(),
+                          "issue_sha256": file_digest(issue) if issue else None,
+                          "catalog_sha256": catalog_digest, "limits": record(limits), "config": record(config),
+                          "expand_candidates": expand_candidates, "generation": indexed["state"]["generation"],
+                          "base_generation": previous["state"]["generation"] if previous else None,
+                          "candidate_generations": {c["repository"]: c.get("generation") for c in candidates},
+                          "coverage_sha256": hashlib.sha256(json.dumps({"graphs": graphs, "warnings": warnings},
+                                                                      sort_keys=True).encode()).hexdigest()}
+        # Use JSON-native lists in both the supplied and generated review contexts.
+        review_context = json.loads(json.dumps(review_context))
+        plan = read_json(interpretation) if interpretation else {}
+        review_status, review_decisions = validate_mr_review(plan, review_context, changes, require_review)
         if interpretation:
-            plan = read_json(interpretation)
             if plan.get("head") != head_id or plan.get("diff_sha256") != hashlib.sha256(diff.encode()).hexdigest():
                 raise EngineError("MR interpretation does not match the current diff and head")
             findings = plan.get("findings", [])
             if not isinstance(findings, list) or len(findings) > 500:
                 raise EngineError("Invalid MR interpretation findings")
             for finding in findings:
+                if not isinstance(finding, dict):
+                    raise EngineError("MR findings must be objects")
                 classification = finding.get("classification")
                 change_index, hunk_index = finding.get("change_index"), finding.get("hunk_index")
                 if classification not in {"confirmed", "likely", "hypothesis requiring verification"}:
@@ -292,6 +258,10 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
                    "warnings": list(dict.fromkeys(warnings)), "limits": record(limits),
                    "completion_context": {"test_execution": "not performed", "MR_review_approval": "not available locally",
                                           "documentation_changed": any(_classify_file(c.new_path or c.old_path) == "documentation" for c in changes)}}
+        context.update({"analysis_status": "draft" if review_status == "pending" else "reviewed",
+                        "semantic_review_status": review_status, "reviewed_changes": review_decisions,
+                        "review_context": review_context,
+                        "coverage_status": "partial" if warnings else "bounded" if catalog else "local_only"})
         for number, finding in enumerate(behavior, 1):
             finding["id"] = f"finding-{number:03}"
         context["qa_scenarios"] = scenarios
@@ -314,13 +284,16 @@ def analyze_mr(root: Path, output: Path, base: str | None = None, head="HEAD", p
                                                        "01-mr-analysis.md", "02-change-context.md", "03-impact-analysis.md", "04-test-plan.md")}
         write_json(output / "mr-context.json", context)
         return {"output": str(output), "changed_files": len(changes), "runtime_targets": len(targets),
-                "candidate_repositories": len(candidates), "warnings": context["warnings"]}
+                "candidate_repositories": len(candidates), "warnings": context["warnings"],
+                "analysis_status": context["analysis_status"], "coverage_status": context["coverage_status"]}
 
 
 def _reports(output, context, mappings, graphs, targets, tests):
     lines = ["# Merge Request analysis", "", f"Revision: `{context['base'] or ('empty tree' if context.get('base_kind') == 'empty_tree' else 'external patch')}..{context['head']}`.", "",
              f"Observed scope: changed files: {len(context['changes'])}; symbol mappings: {len(mappings)}; runtime targets: {len(targets)}.", "",
              "## Changed areas", ""]
+    lines[4:4] = [f"Analysis status: {context['analysis_status']}; semantic review: {context['semantic_review_status']}; coverage: {context['coverage_status']}.",
+                  "Confidence values are detector strength levels, not calibrated probabilities of runtime impact.", ""]
     for change in context["changes"]:
         path = change["new_path"] or change["old_path"]
         lines.append(f"- **{change['status']}** `{path}` ({_classify_file(path)}); hunks: {len(change['hunks'])}.")
@@ -338,6 +311,8 @@ def _reports(output, context, mappings, graphs, targets, tests):
     if not context["issue_context"]:
         lines.append("No explicit Issue criteria were supplied or extracted; observed changes remain the primary evidence.")
     lines += ["", "## Completion context", ""] + [f"- {k}: {v}" for k, v in context["completion_context"].items()]
+    lines += ["", "## Semantic change review", ""]
+    lines += [f"- Change {int(key) + 1}: {value['status']}. {value['reason']}" for key, value in context["reviewed_changes"].items()]
     lines += ["", "Scope differences and changes to non-goals require contextual review; lexical associations do not establish agreement or test coverage.", ""]
     write_text(output / "02-change-context.md", "\n".join(lines))
     lines = ["# Impact analysis", "", "## Code evidence", ""]
@@ -362,6 +337,7 @@ def _reports(output, context, mappings, graphs, targets, tests):
         lines.append("No undefined nodes were reached within the configured limits.")
     write_text(output / "03-impact-analysis.md", "\n".join(lines) + "\n")
     lines = ["# QA validation plan", "", "This is a proposed scope; no tests or operational jobs were executed.", "",
+             f"Semantic review: {context['semantic_review_status']}; coverage: {context['coverage_status']}.", "",
              "## Code-level tests", ""]
     lines += [f"- Inspect and run the existing test definition `{t['file']}` in `{t['repository']}` using its documented runner. Association: {t['classification']}; confidence {t['confidence']}/100." for t in tests]
     if not tests:
