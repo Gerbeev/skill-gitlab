@@ -6,7 +6,7 @@ description: Analyze local Issue notes or requirements and draft a GitLab Issue 
 # Analyze Issue
 
 Use the shared engine operation `analyze-issue`.
-Read [the shared Issue workflow](../../../docs/issue-workflow.md) for source selection,
+Read [the shared Issue workflow](../../../docs/README.md#1-analyze-an-issue) for source selection,
 template interpretation, evidence validation, and the engine invocation.
 Resolve its launcher from the suite root, three directories above this skill directory;
 pass the target project explicitly as `--repo` when working outside this checkout.

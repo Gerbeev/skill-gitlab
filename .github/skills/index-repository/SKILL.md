@@ -16,6 +16,6 @@ Use `--boundary` for organization catalog inputs. Default indexing uses committe
 use `--worktree` only when the user wants staged, unstaged, and untracked files included.
 Report index location, mode, parsed/reused/skipped counts, and detector limitations.
 
-Read [index storage and maintenance](../../../docs/index-storage.md) for configuration,
+Read [index storage and maintenance](../../../docs/reference/index-storage.md) for configuration,
 freshness checks, exclusions, and `index-organization` when catalog aggregation is requested.
 Do not execute indexed code.

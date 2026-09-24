@@ -14,7 +14,7 @@ python skills/_engine/scripts/mr-impact.py update-issue --issue <analyzed-issue>
 Resolve the launcher from the suite root, three directories above this skill directory.
 Supply `--validation` only for actual
 execution evidence and `--target` when the Issue identifier is known.
-Read [the shared update workflow](../../../docs/workflow.md#issue-update) for preview handling.
+Read [the shared update workflow](../../../docs/README.md#4-prepare-an-issue-update) for preview handling.
 
 Return `05-issue-update.md`. Preserve original requirements, uncertainty, and the distinction between
 proposed QA work and completed validation. Describe newly observed behavior factually for review.

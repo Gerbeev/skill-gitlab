@@ -46,7 +46,7 @@ narrow optional adapter, snapshot transport, and measured scale benchmarks.
 None is required to run the demonstrated local workflow.
 
 Standalone Issue generation returns a draft. Completed semantic delivery requires
-the source-bound interpretation and `--require-review` described in the Issue workflow.
+the source-bound interpretation and `--require-review` described in the [Issue workflow](../README.md#1-analyze-an-issue).
 MR semantic delivery likewise requires a context-bound review and a decision for
 every change. A reviewed result may still have unresolved findings and partial
 coverage. Repository IDs and resource namespaces can be configured, but correct

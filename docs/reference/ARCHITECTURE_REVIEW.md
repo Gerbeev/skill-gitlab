@@ -8,12 +8,12 @@ The original review found six actionable concerns. The changes described below a
 
 ## Evidence and scope
 
-The review inspected `docs/TASK_STATEMENT.md`, its referenced multi-repository architecture, all four skill wrappers, operating guides, the shared engine, fixtures, and tests. The original baseline passed 57 tests. Two additional isolated experiments reproduced defects that those tests did not cover:
+The review inspected `docs/reference/TASK_STATEMENT.md`, its referenced multi-repository architecture, all four skill wrappers, operating guides, the shared engine, fixtures, and tests. The original baseline passed 57 tests. Two additional isolated experiments reproduced defects that those tests did not cover:
 
 - Independent repositories containing `run.py` matched globally through `file://run.py` at confidence 100.
 - An export failure after a successful SQLite transaction left stale JSON files that the following index operation incorrectly accepted as current.
 
-Other findings came from code inspection and were identified as limitations or risks rather than reproduced failures. The follow-up implementation adds dedicated regression coverage, including actual temporary Git repositories and cross-process lock contention. Test commands and acceptance scenarios are maintained in `docs/testing.md`.
+Other findings came from code inspection and were identified as limitations or risks rather than reproduced failures. The follow-up implementation adds dedicated regression coverage, including actual temporary Git repositories and cross-process lock contention. Test commands and acceptance scenarios are maintained in `docs/reference/testing.md`.
 
 ## Sound architectural choices retained
 
@@ -49,7 +49,7 @@ Implemented correction:
 
 Acceptance coverage checks independent identical file paths, stable identity after checkout relocation, separate caches, external-resource matches, and namespace isolation.
 
-Operators must configure consistent namespaces for the same external resource. Unqualified names remain an assumption about a shared domain; the engine cannot infer database instances, scheduler installations, or deployment environments from names alone. See `docs/index-storage.md`.
+Operators must configure consistent namespaces for the same external resource. Unqualified names remain an assumption about a shared domain; the engine cannot infer database instances, scheduler installations, or deployment environments from names alone. See `docs/reference/index-storage.md`.
 
 ## A2: Recoverable publication of index exports
 
@@ -144,13 +144,13 @@ File-level seeds and containment can include neighboring definitions. This trade
 
 ### Scale and operational transport
 
-The refreshed benchmark covers 1,000 synthetic files and one candidate after the corrections. This run measured approximately 2.12 seconds for initial deep indexing, 0.135 for no-op, 0.486 for one-file update, 1.47 for boundary indexing, and 2.64 for candidate expansion. These local measurements are not organization-scale performance promises. The memory metric excludes Git and native SQLite allocations. Raw results are in `docs/benchmark-results.json`.
+The refreshed benchmark covers 1,000 synthetic files and one candidate after the corrections. This run measured approximately 2.12 seconds for initial deep indexing, 0.135 for no-op, 0.486 for one-file update, 1.47 for boundary indexing, and 2.64 for candidate expansion. These local measurements are not organization-scale performance promises. The memory metric excludes Git and native SQLite allocations. Raw results are in `docs/reference/benchmark-results.json`.
 
 Representative organization benchmarks, total process RSS, high-degree dependency cases, concurrent usage, catalog transport, remote clone scheduling, and service-level SLAs remain unverified. Hash-validating exports adds I/O proportional to export size on no-op checks and must be included in future measurements.
 
 ### Agent behavior
 
-Engine tests do not establish Copilot discovery or model reasoning quality. Run the acceptance scenarios in `docs/testing.md` in the intended model environment, recording prompts, model/version, source revisions, outputs, missed runtime targets, irrelevant scope, and semantic mistakes. Do not infer production readiness from the number of passing tests.
+Engine tests do not establish Copilot discovery or model reasoning quality. Run the acceptance scenarios in `docs/reference/testing.md` in the intended model environment, recording prompts, model/version, source revisions, outputs, missed runtime targets, irrelevant scope, and semantic mistakes. Do not infer production readiness from the number of passing tests.
 
 ## Suitability against the task statement
 

@@ -7,7 +7,7 @@ Historical implementation prompts and fix reports are not additional requirement
 
 ## Result
 
-Follow-up: the root `ARCHITECTURE_REVIEW.md` records six additional architectural
+Follow-up: `ARCHITECTURE_REVIEW.md` records six additional architectural
 findings and their implementation. Local paths no longer match globally; identity
 namespaces, recoverable generation manifests, operation locks, repeated-seed
 expansion, semantic Issue findings, and explicit MR review/coverage states now
@@ -82,7 +82,7 @@ instructions rather than adding another orchestration layer.
 
 [Anthropic guidance](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)
 recommends shallow references and evaluation on representative tasks. The skills
-link directly to their workflows. Engine regressions and the reproducible example
+link to the [current operating guide](../README.md). Engine regressions and the reproducible example
 check deterministic behavior; [testing.md](testing.md) separately defines agent
 acceptance scenarios. Those scenarios are not claimed as executed model evaluations.
 

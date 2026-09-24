@@ -13,7 +13,7 @@ python skills/_engine/scripts/mr-impact.py analyze-mr --repo <repository> --base
 
 Resolve the launcher from the suite root, three directories above this skill directory.
 Use the requested range or a locally established MR base; if neither is available,
-ask for the base rather than silently assuming `main`. Use [the shared MR workflow](../../../docs/mr-workflow.md)
+ask for the base rather than silently assuming `main`. Use [the shared MR workflow](../../../docs/README.md#3-analyze-a-merge-request)
 for patch/commit inputs, bounded organization expansion, behavioral interpretation, and report review.
 Use the Issue only as context. Do not grade developer understanding or implementation correctness
 relative to possibly stale Issue text. Preserve uncertainty and neutral descriptions of differences.
