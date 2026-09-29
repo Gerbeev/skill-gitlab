@@ -1,0 +1,14 @@
+[workflow]
+
+activation_steps_prepend = []
+
+activation_steps_append = []
+
+persistent_facts = [
+  "file:{project-root}/docs/reference/gitlab-integration.md",
+  "Do not grade whether the developer understood the Issue. Neutral mappings only.",
+]
+
+on_complete = """
+Unless the user asked to keep artifacts, delete {project-root}/.repository-analysis/run/ after presenting MR reports.
+"""

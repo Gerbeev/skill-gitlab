@@ -1,0 +1,6 @@
+[core]
+project_name = "{directory_name}"
+engine_project = "{project-root}/skills/_engine"
+run_dir = "{project-root}/.repository-analysis/run"
+index_root = "{project-root}/.repository-analysis"
+boundary_catalog = "{project-root}/.repository-analysis/catalog/boundary-catalog.json"

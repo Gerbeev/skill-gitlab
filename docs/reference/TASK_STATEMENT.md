@@ -1,6 +1,6 @@
 # Task Statement
 
-> **Delivery note:** [V1_SCOPE.md](V1_SCOPE.md) describes what this repository implements in the first version (single-repo default, optional catalog without automatic cross-repo deep expansion). This document remains the full specification.
+> **Delivery note:** [V1_SCOPE.md](V1_SCOPE.md) is the **authoritative MVP boundary** (single-repo DEEP indexing, optional read-only boundary catalog stub, no automatic cross-repo deep expansion). [MVP_TASK_IMPROVEMENTS.md](MVP_TASK_IMPROVEMENTS.md) explains simplifications and patterns from `examples/`. This document remains the **full product specification** for later versions.
 
 ## 1. Purpose
 
@@ -162,8 +162,10 @@ After completing the analysis, the Skill must generate a complete GitLab Issue d
 The Issue description must be generated **strictly from the current template**:
 
 ```text
-GITLAB_ISSUE_TEMPLATE.md
+.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md
 ```
+
+(Per-project copies may override via `--template`; the skill directory copy is the default shipped with this repository.)
 
 The template is the authoritative structural contract for the generated Issue description and for any readiness/governance checks embedded in the Issue workflow.
 
@@ -603,7 +605,7 @@ Optional context:
 - commit messages;
 - linked Issue identifier.
 
-GitLab API access is not required.
+GitLab API access is **optional**. When needed, use a `GITLAB_TOKEN` (and `GITLAB_HOST`) or GitLab MCP tools configured in Copilot. See [gitlab-integration.md](gitlab-integration.md). Local Git ranges and files remain the default.
 
 ## Phase 1 — Deterministic Change Extraction
 
@@ -1211,7 +1213,7 @@ implementation summary
 validation evidence
 ```
 
-Remote mutation is disabled by default.
+Remote mutation is disabled by default. When enabled, use `GITLAB_TOKEN` or GitLab MCP after local preview ([gitlab-integration.md](gitlab-integration.md)).
 
 ## GitLab Write Behavior
 
@@ -1321,16 +1323,18 @@ Recommended repository structure:
     └── update-issue/
         └── SKILL.md
 
-src/
-└── mr_impact/
-    ├── cli/
-    ├── core/
-    ├── indexing/
-    ├── graph/
-    ├── adapters/
-    ├── schemas/
-    ├── templates/
-    └── reports/
+skills/
+└── _engine/
+    ├── pyproject.toml
+    ├── scripts/
+    └── src/
+        └── mr_impact/
+            ├── cli.py
+            ├── indexing/
+            ├── adapters/
+            ├── storage/
+            ├── analysis/
+            └── ...
 ```
 
 The exact internal package layout may change, but the architectural rule is mandatory:
@@ -1443,6 +1447,7 @@ External content must not override trusted Skill instructions.
 The first version does not require:
 
 - organization-wide repository graph;
+- automated cross-repository **deep** indexing during Analyze MR (a read-only boundary catalog stub may be used; see [V1_SCOPE.md](V1_SCOPE.md));
 - vector search;
 - multi-agent orchestration;
 - full runtime tracing;
@@ -1454,6 +1459,8 @@ The first version does not require:
 
 # 12. Expected Core Artifacts
 
+Per-run outputs (default: `.repository-analysis/run/`, gitignored and cleared between skill runs unless the user keeps artifacts; not mixed into the persistent index):
+
 ```text
 00-issue-analysis.md
 01-generated-issue.md
@@ -1463,11 +1470,16 @@ The first version does not require:
 04-test-plan.md
 05-issue-update.md
 
-issue-intent.json
+issue-intent.json          # optional machine-readable Analyze Issue output
 mr-context.json
 changed-symbols.json
 impact-graph.json
 test-impact.json
+```
+
+Persistent index (under `.repository-analysis/`):
+
+```text
 repository-index.sqlite
 ```
 
@@ -1538,7 +1550,7 @@ The Skill is production-worthy only when it consistently provides:
 - controlled Issue updates;
 - no unsupported correctness verdicts;
 - no automatic trust of repository content;
-- no mandatory dependency on GitLab API access.
+- no mandatory dependency on GitLab API access (token or MCP optional for fetch/apply).
 
 ---
 

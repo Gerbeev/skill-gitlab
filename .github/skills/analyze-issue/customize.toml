@@ -1,0 +1,15 @@
+# Customization for analyze-issue. Override in _mr-impact/custom/analyze-issue.toml
+
+[workflow]
+
+activation_steps_prepend = []
+
+activation_steps_append = []
+
+persistent_facts = [
+  "file:{project-root}/docs/reference/gitlab-integration.md",
+]
+
+on_complete = """
+If the user did not ask to keep artifacts, delete the contents of {project-root}/.repository-analysis/run/ after presenting outputs.
+"""

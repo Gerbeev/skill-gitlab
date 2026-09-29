@@ -1,0 +1,13 @@
+[workflow]
+
+activation_steps_prepend = []
+activation_steps_append = []
+
+persistent_facts = [
+  "file:{project-root}/docs/reference/gitlab-integration.md",
+  "Never rewrite the Issue solely to match code without human agreement.",
+]
+
+on_complete = """
+Delete {project-root}/.repository-analysis/run/ after preview unless the user asked to keep artifacts or GitLab apply is still pending confirmation.
+"""

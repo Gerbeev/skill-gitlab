@@ -1,0 +1,10 @@
+[bmod]
+code = "method"
+version = "0.1.0"
+update_source = "file:skills"
+skills = [
+  "analyze-issue",
+  "index-repository",
+  "analyze-mr",
+  "update-issue",
+]

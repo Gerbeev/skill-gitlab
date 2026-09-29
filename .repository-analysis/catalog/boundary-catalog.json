@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "description": "Optional organization boundary catalog. Copy to .repository-analysis/catalog/boundary-catalog.json and edit. Analyze MR reads this for cross-repo hints only; it does not deep-index other repositories.",
+  "entities": [
+    {
+      "id": "table://risk/daily_exposure",
+      "kind": "database_table",
+      "summary": "Daily exposure aggregate consumed by reporting",
+      "repos": [
+        {
+          "path": "reporting-service",
+          "role": "consumer",
+          "confidence": 0.9,
+          "evidence": "architecture wiki / manual curation"
+        }
+      ]
+    },
+    {
+      "id": "job://AUTOSYS/PAYMENT_RECON_EOD",
+      "kind": "autosys_job",
+      "summary": "End-of-day payment reconciliation batch",
+      "repos": [
+        {
+          "path": "payment-platform",
+          "role": "definition",
+          "confidence": 1.0,
+          "evidence": "jobs/payment_recon.jil in repo"
+        }
+      ]
+    },
+    {
+      "id": "api://reporting/v1/eod-summary",
+      "kind": "http_api",
+      "summary": "EOD summary endpoint",
+      "repos": [
+        {
+          "path": "reporting-service",
+          "role": "implementation",
+          "confidence": 0.85,
+          "evidence": "manual"
+        }
+      ]
+    }
+  ]
+}

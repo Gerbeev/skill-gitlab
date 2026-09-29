@@ -1,0 +1,10 @@
+[workflow]
+
+activation_steps_prepend = []
+activation_steps_append = []
+
+persistent_facts = [
+  "Adapter priority V1: C#, Oracle SQL/PL/SQL, JIL, then Scala/Java, then generic/Python.",
+]
+
+on_complete = ""

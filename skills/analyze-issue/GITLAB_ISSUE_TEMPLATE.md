@@ -1,8 +1,5 @@
 # Issue
 
-> **Canonical copy for Copilot:** `.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md`.  
-> Keep this file in sync when the template changes, or treat the skill copy as the source of truth for `/analyze-issue`.
-
 <!--
 AI AGENT CONTRACT
 

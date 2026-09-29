@@ -1,0 +1,21 @@
+# iFlow-compatible optional grammars (see examples/iFlow/framework/readers/requirements.txt).
+# Install when wiring tree-sitter into the engine adapters layer:
+#
+#   pip install -r skills/_engine/src/mr_impact/readers/requirements.txt
+#
+tree-sitter>=0.25
+tree-sitter-go
+tree-sitter-java
+tree-sitter-c-sharp
+tree-sitter-typescript
+tree-sitter-javascript
+tree-sitter-rust
+tree-sitter-ruby
+tree-sitter-php
+tree-sitter-c
+tree-sitter-cpp
+tree-sitter-kotlin
+tree-sitter-scala
+tree-sitter-swift
+tree-sitter-bash
+tree-sitter-powershell
