@@ -6,20 +6,20 @@ This document defines what the **first shippable version** of the repository mus
 
 Four Copilot project skills under `.github/skills/`, each a thin wrapper over one shared engine:
 
-| Skill | Engine command (conceptual) | Required V1 behavior |
-| --- | --- | --- |
-| `/analyze-issue` | `analyze-issue` | `00-issue-analysis.md` + `01-generated-issue.md` from scoped input + skill-root template |
-| `/index-repository` | `index-repository` | **DEEP** index for the **current** Git repository only |
-| `/analyze-mr` | `analyze-mr` | Deterministic diff → symbols → bounded graph → runtime/QA hints → reports |
-| `/update-issue` | `update-issue` | Local preview `05-issue-update.md`; GitLab apply **opt-in** (token or MCP) |
+| Skill               | Engine command (conceptual) | Required V1 behavior                                                                     |
+| ------------------- | --------------------------- | ---------------------------------------------------------------------------------------- |
+| `/analyze-issue`    | `analyze-issue`             | `00-issue-analysis.md` + `01-generated-issue.md` from scoped input + skill-root template |
+| `/index-repository` | `index-repository`          | **DEEP** index for the **current** Git repository only                                   |
+| `/analyze-mr`       | `analyze-mr`                | Deterministic diff → symbols → bounded graph → runtime/QA hints → reports                |
+| `/update-issue`     | `update-issue`              | Local preview `05-issue-update.md`; GitLab apply **opt-in** (token or MCP)               |
 
 ## Ephemeral vs persistent storage
 
-| Path | Lifecycle |
-| --- | --- |
-| `.repository-analysis/run/` | **Per-run outputs** (Issue + MR + update previews). **Gitignored.** Cleared before each new skill run and after the user finishes reviewing, unless they ask to keep artifacts. |
-| `.repository-analysis/index/`, `graph/` | **Persistent** repository index; reused across MR runs. |
-| `.repository-analysis/catalog/boundary-catalog.json` | **Optional**, curated; not deleted with run cleanup. |
+| Path                                                 | Lifecycle                                                                                                                                                                       |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.repository-analysis/run/`                          | **Per-run outputs** (Issue + MR + update previews). **Gitignored.** Cleared before each new skill run and after the user finishes reviewing, unless they ask to keep artifacts. |
+| `.repository-analysis/index/`, `graph/`              | **Persistent** repository index; reused across MR runs.                                                                                                                         |
+| `.repository-analysis/catalog/boundary-catalog.json` | **Optional**, curated; not deleted with run cleanup.                                                                                                                            |
 
 Default CLI flag: `--run-dir .repository-analysis/run`.
 
@@ -72,6 +72,7 @@ This replaces a heavy org-wide indexer for MVP while matching TASK_STATEMENT cro
 
 - Template-driven generation from `{skill-root}/GITLAB_ISSUE_TEMPLATE.md`.
 - Optional GitLab fetch: MCP preferred, else `GITLAB_TOKEN` REST ([gitlab-integration.md](gitlab-integration.md)).
+- Optional **anchored** graph context when an index exists: bounded paths from Issue-named jobs/symbols only ([issue-anchored-graph-traversal.md](issue-anchored-graph-traversal.md)).
 
 ### Analyze MR
 
@@ -115,6 +116,7 @@ Optional: read `boundary-catalog.json`; optional GitLab MR metadata via MCP/toke
 | --- | --- |
 | [TASK_STATEMENT.md](TASK_STATEMENT.md) | Full product specification |
 | **V1_SCOPE.md** (this file) | MVP delivery boundary |
+| [GLOSSARY.md](GLOSSARY.md) | Definitions of skills, engine, render_skill, artifacts |
 | [MVP_TASK_IMPROVEMENTS.md](MVP_TASK_IMPROVEMENTS.md) | Rationale and patterns |
 | [gitlab-integration.md](gitlab-integration.md) | Token + MCP |
 | [../README.md](../README.md) | Copilot usage examples |

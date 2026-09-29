@@ -1,7 +1,11 @@
 # Documentation
 
+**Install and step-by-step Copilot usage:** see the root **[README.md](../README.md)** (setup, `.github/skills/`, four stages).
+
 | Document | Purpose |
 | --- | --- |
+| [reference/GLOSSARY.md](reference/GLOSSARY.md) | **Glossary** — MR Impact, render_skill, engine, artifacts, indexing terms |
+| [reference/issue-anchored-graph-traversal.md](reference/issue-anchored-graph-traversal.md) | How Issue analysis searches the graph (anchors, AutoSys paths, no module-wide job explosion) |
 | [GITLAB_ISSUE_TEMPLATE.md](GITLAB_ISSUE_TEMPLATE.md) | Mirror of the Issue template (canonical: `.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md`) |
 | [reference/TASK_STATEMENT.md](reference/TASK_STATEMENT.md) | Full product specification (four skills, shared engine) |
 | [reference/V1_SCOPE.md](reference/V1_SCOPE.md) | **MVP delivery boundary** |
