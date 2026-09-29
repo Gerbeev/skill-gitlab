@@ -10,6 +10,7 @@
 | [reference/TASK_STATEMENT.md](reference/TASK_STATEMENT.md) | Full product specification (four skills, shared engine) |
 | [reference/V1_SCOPE.md](reference/V1_SCOPE.md) | **MVP delivery boundary** |
 | [reference/MVP_TASK_IMPROVEMENTS.md](reference/MVP_TASK_IMPROVEMENTS.md) | Design rationale and `examples/` patterns |
+| [reference/python-setup.md](reference/python-setup.md) | Python 3.11+ without `uv` |
 | [reference/gitlab-integration.md](reference/gitlab-integration.md) | GitLab token + MCP (read / opt-in write) |
 | [reference/boundary-catalog.example.json](reference/boundary-catalog.example.json) | Optional cross-repo boundary catalog seed |
 
@@ -38,8 +39,11 @@ _mr-impact/                 # runtime after setup (render_skill, config)
 **Setup** (repo root, not a skill):
 
 ```bash
-uv run --no-cache skills/mr-impact-method/scripts/setup.py --project-root .
+python -m pip install -r skills/mr-impact-method/scripts/requirements.txt
+python skills/mr-impact-method/scripts/setup.py --project-root .
 ```
+
+No `uv` required: [reference/python-setup.md](reference/python-setup.md).
 
 Each slash command: `render_skill.py` → follow rendered `workflow.md` (BMAD `bmad-build` / `bmad-code-review` pattern).
 

@@ -54,7 +54,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | **`_mr-impact/`**       | Project-local runtime created by **setup**: `config.toml`, copy of hub scripts, `custom/`, and generated `render/` snapshots.                                                                                     |
 | **Setup (`setup.py`)**  | `skills/mr-impact-method/scripts/setup.py`: writes config, copies scripts to `_mr-impact/scripts/`, syncs the four skills to `.github/skills/`, seeds optional boundary catalog. Not invoked via a slash command. |
 | **`config.toml`**       | Central config under `_mr-impact/` (from `assets/config.template.toml`): paths to engine, run dir, index root, catalog file.                                                                                      |
-| **`run_engine.py`**     | Wrapper that runs `uv run --project <engine> python -m mr_impact …` with forwarded CLI arguments. Used in workflow step files.                                                                                    |
+| **`run_engine.py`**     | Wrapper that runs `python -m mr_impact …` with `PYTHONPATH` set to `skills/_engine/src` (no `uv` required). Used in workflow step files.                                                                                    |
 | **`resolve_config.py`** | Resolves merged TOML config layers to JSON (BMAD-derived).                                                                                                                                                        |
 
 ---

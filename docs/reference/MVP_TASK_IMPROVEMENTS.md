@@ -122,7 +122,7 @@ description: Analyze a Merge Request using the shared mr-impact engine...
 
 Run once from the repository root (replace paths):
 
-uv run --project skills/_engine python -m mr_impact analyze-mr [args]
+python _mr-impact/scripts/run_engine.py --project-root . -- analyze-mr [args]
 
 - On non-zero exit: show stderr and STOP. Do not guess graph results.
 - On success: present paths to 01–04 markdown reports and offer to open runtime-impact.json.

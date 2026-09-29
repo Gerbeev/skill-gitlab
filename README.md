@@ -17,7 +17,8 @@ Four VS Code **GitHub Copilot** project skills for Issue analysis, repository in
 
 - **VS Code** with **GitHub Copilot** and **Agent** mode (project skills / slash commands).
 - **Git** repository opened as the workspace root (the project you analyze).
-- **[uv](https://docs.astral.sh/uv/)** installed (`uv` on PATH) for setup and the Python engine.
+- **Python 3.11+** (`python` or Windows `py -3.11`). **`uv` is not required** — see [python-setup](docs/reference/python-setup.md).
+- One-time: `pip install -r skills/mr-impact-method/scripts/requirements.txt` (Jinja2 for `render_skill`).
 - Optional: **`GITLAB_TOKEN`** / **GitLab MCP** for fetching Issues or MRs ([gitlab-integration](docs/reference/gitlab-integration.md)).
 
 ---
@@ -61,8 +62,11 @@ After setup, Copilot only needs:
 From the **project root** (where `.git` lives):
 
 ```bash
-uv run --no-cache skills/mr-impact-method/scripts/setup.py --project-root .
+python -m pip install -r skills/mr-impact-method/scripts/requirements.txt
+python skills/mr-impact-method/scripts/setup.py --project-root .
 ```
+
+On Windows, if `python` is missing, use `py -3.11` instead of `python`.
 
 Setup will:
 
@@ -73,7 +77,7 @@ Setup will:
 Check status:
 
 ```bash
-uv run --no-cache skills/mr-impact-method/scripts/setup.py --project-root . --status
+python skills/mr-impact-method/scripts/setup.py --project-root . --status
 ```
 
 Re-run setup after you change files under `skills/` so `.github/skills/` stays in sync.
@@ -225,13 +229,14 @@ More examples (GitLab MR, boundary catalog): **[docs/README.md](docs/README.md)*
 
 The Python engine lives in **`skills/_engine/`** (`mr_impact` package). Skill workflows call it via **`_mr-impact/scripts/run_engine.py`**. Until the full engine is present in your checkout, steps that invoke `mr-impact` will fail—see [skills/_engine/README.md](skills/_engine/README.md).
 
-Install engine deps when available:
+Install engine when the full package is in your checkout:
 
 ```bash
-uv sync --project skills/_engine
+python -m pip install -e skills/_engine
 ```
 
-Optional tree-sitter grammars (iFlow list): `skills/_engine/src/mr_impact/readers/requirements.txt`.
+Optional tree-sitter grammars: `skills/_engine/src/mr_impact/readers/requirements.txt`.  
+**Without uv:** [docs/reference/python-setup.md](docs/reference/python-setup.md).
 
 ---
 

@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-# /// script
-# requires-python = ">=3.11"
-# ///
-"""Run the shared mr_impact CLI via uv."""
+"""Run the shared mr_impact CLI using the current Python (no uv required)."""
 
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -16,7 +14,7 @@ sys.dont_write_bytecode = True
 try:
     from config_utils import ConfigError, load_central_config
 except ImportError:
-    load_central_config = None  # type: ignore
+    load_central_config = None
 
 
 def engine_root(project_root: Path) -> Path:
@@ -41,17 +39,13 @@ def main() -> int:
     if forwarded and forwarded[0] == "--":
         forwarded = forwarded[1:]
     engine = engine_root(project_root)
-    cmd = [
-        "uv",
-        "run",
-        "--project",
-        str(engine),
-        "python",
-        "-m",
-        "mr_impact",
-        *forwarded,
-    ]
-    completed = subprocess.run(cmd, cwd=str(project_root))
+    src = engine / "src"
+    env = os.environ.copy()
+    if src.is_dir():
+        prev = env.get("PYTHONPATH", "")
+        env["PYTHONPATH"] = os.pathsep.join([str(src), prev]) if prev else str(src)
+    cmd = [sys.executable, "-m", "mr_impact", *forwarded]
+    completed = subprocess.run(cmd, cwd=str(project_root), env=env)
     return int(completed.returncode)
 
 

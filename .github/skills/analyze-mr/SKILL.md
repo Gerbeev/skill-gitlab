@@ -6,7 +6,7 @@ description: 'Analyze a Merge Request: deterministic diff, impact graph, runtime
 Run the following command exactly once:
 
 ```bash
-uv run --no-cache "{project-root}/_mr-impact/scripts/render_skill.py" --project-root "{project-root}" --skill "{skill-root}"
+python "{project-root}/_mr-impact/scripts/render_skill.py" --project-root "{project-root}" --skill "{skill-root}"
 ```
 
 - On success, follow the printed `workflow.md` path.

@@ -19,8 +19,8 @@ def report(skill_dir: Path, project_root: Path) -> None:
         return
     sys.stdout.write(
         "NOTE: MR Impact runtime is not installed. "
-        f"Run: uv run --no-cache \"{skill_dir / 'scripts' / 'setup.py'}\" "
-        f"--project-root \"{project_root}\" --skill \"{skill_dir.parent / 'mr-impact'}\"\n"
+        f"Run: python \"{project_root / 'skills' / 'mr-impact-method' / 'scripts' / 'setup.py'}\" "
+        f"--project-root \"{project_root}\"\n"
     )
 
 

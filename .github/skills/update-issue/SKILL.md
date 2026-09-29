@@ -4,7 +4,7 @@ description: 'Prepare 05-issue-update.md after MR analysis. Optional GitLab appl
 ---
 
 ```bash
-uv run --no-cache "{project-root}/_mr-impact/scripts/render_skill.py" --project-root "{project-root}" --skill "{skill-root}"
+python "{project-root}/_mr-impact/scripts/render_skill.py" --project-root "{project-root}" --skill "{skill-root}"
 ```
 
 - On success, follow printed `workflow.md`.
