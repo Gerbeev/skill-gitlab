@@ -84,8 +84,8 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | **`01-generated-issue.md`** | Analyze Issue: GitLab-ready Issue body matching current template section order. |
 | **`issue-intent.json`** | Analyze Issue: structured gaps, anchors, bounded dependency paths. |
 | **`01-mr-analysis.md` … `04-test-plan.md`** | Analyze MR human reports (summary, change context, impact, QA plan). |
-| **`05-issue-update.md`** | Update Issue: preview of proposed Issue changes after MR analysis. |
-| **`issue-update.json`** | Update Issue: structured preview (`gitlab_apply` always false in engine). |
+| **`05-issue-update.md`** | Update Issue: preview of proposed Issue changes after MR analysis; must include **QA / runtime (nearest paths)** when MR analysis provides them ([nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md)). |
+| **`issue-update.json`** | Update Issue: structured preview (`gitlab_apply` always false in engine); carries `runtime_targets` today; planned `primary_qa_targets` / `nearest_paths`. |
 | **`boundary-hints.json`** | Analyze MR: optional cross-repo hints from boundary catalog matches. |
 | **Machine-readable JSON** | e.g. `mr-context.json`, `changed-symbols.json`, `impact-graph.json`, `runtime-impact.json`, `test-impact.json` — produced by the engine for tooling and skill presentation. |
 | **`GITLAB_ISSUE_TEMPLATE.md`** | Authoritative Issue structure for `/analyze-issue`; canonical copy in `.github/skills/analyze-issue/` (source: `skills/analyze-issue/`). |
@@ -101,6 +101,8 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | **Dependency graph** | Persisted edges (`IMPORTS`, `CALLS`, `CONFIGURES`, job/script links, etc.) with bounds and confidence. |
 | **Boundary catalog** | Optional `.repository-analysis/catalog/boundary-catalog.json` mapping entities (e.g. `table://…`, `job://…`) to candidate repositories. Read-only hints in MR analysis in V1. |
 | **Runtime / QA target** | An executable thing QA should run or verify (AutoSys job, batch, script, process) derived from the graph, not only a list of changed files. |
+| **Nearest runtime impact path** | Shortest evidence-backed chain from an MR diff seed (symbol, line range, table) through callers to a **primary** AutoSys job (and box on that path). Not the full nightly batch. See [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md). |
+| **Primary QA target** | The one job (plus box) testers should rerun first for a given seed; optional secondary targets only via explicit scheduler edges (e.g. `DEPENDS_ON`). |
 | **Impact classification** | e.g. `DIRECTLY_AFFECTED`, `TRANSITIVELY_AFFECTED`, `POTENTIALLY_AFFECTED`, `UNRESOLVED` for operational entities. |
 | **Evidence** | Pointer to source (file, line, detector name) supporting a graph or report claim. |
 | **Confidence** | How strongly a relationship is known (exact parse vs heuristic vs unresolved). |
@@ -138,6 +140,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 
 - [docs/README.md](../README.md) — Copilot usage examples  
 - [engine-contract.md](engine-contract.md) — Canonical CLI and run artifacts  
+- [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md) — Nearest dependency chains for QA and Issue update  
 - [V1_SCOPE.md](V1_SCOPE.md) — MVP boundaries  
 - [gitlab-integration.md](gitlab-integration.md) — GitLab token and MCP  
 - [skills/README.md](../../skills/README.md) — Skill catalog  

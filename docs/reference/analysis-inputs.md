@@ -36,3 +36,12 @@ If both are missing or empty: tell the user to run `/create_index` first; for gr
 ## Staleness
 
 If `git_head` in manifest ≠ current `HEAD`, recommend refreshing index (and graph after index).
+
+## Downstream: MR and Issue update
+
+| Consumer | Needs from index/graph |
+| --- | --- |
+| `/analyze-mr` | Line-accurate symbols, SQL/PL/SQL calls, .NET calls, JIL `script_path`, table refs — to build **nearest** paths to AutoSys jobs/boxes ([nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md)) |
+| `/update-issue` | MR run artifacts only (`01-mr-analysis.md` … `runtime-impact.json`); does not re-read the graph |
+
+Without both index **and** graph (or sqlite edges), upstream-to-job chains may be incomplete; report `UNRESOLVED` rather than inventing jobs.

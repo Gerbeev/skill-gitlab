@@ -11,6 +11,7 @@
 | [reference/GLOSSARY.md](reference/GLOSSARY.md) | Terms: skills, engine, indexing, artifacts |
 | [reference/analysis-inputs.md](reference/analysis-inputs.md) | Which index/graph files downstream skills read |
 | [reference/issue-anchored-graph-traversal.md](reference/issue-anchored-graph-traversal.md) | Anchored graph walks (Issue and MR) |
+| [reference/nearest-runtime-impact-paths.md](reference/nearest-runtime-impact-paths.md) | **QA-facing nearest chains** (diff → DB/app → AutoSys job/box); required for `/update-issue` |
 | [reference/TASK_STATEMENT.md](reference/TASK_STATEMENT.md) | Full product specification |
 | [reference/V1_SCOPE.md](reference/V1_SCOPE.md) | **MVP delivery boundary** |
 | [reference/MVP_TASK_IMPROVEMENTS.md](reference/MVP_TASK_IMPROVEMENTS.md) | Design rationale (BMAD patterns, V1 simplifications) |

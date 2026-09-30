@@ -1,6 +1,6 @@
 # MR Impact engine (`skills/_engine`)
 
-Shared Python package for **DEEP indexing**, Issue prep, MR impact, and Issue update preview. Copilot skills invoke it via `_mr-impact/scripts/run_engine.py`. Canonical CLI and artifacts: [docs/reference/engine-contract.md](../../docs/reference/engine-contract.md).
+Shared Python package for **DEEP indexing**, Issue prep, MR impact, and Issue update preview. Copilot skills invoke it via `_mr-impact/scripts/run_engine.py`. Canonical CLI and artifacts: [docs/reference/engine-contract.md](../../docs/reference/engine-contract.md). QA dependency chains: [nearest-runtime-impact-paths.md](../../docs/reference/nearest-runtime-impact-paths.md).
 
 ## Install (optional)
 

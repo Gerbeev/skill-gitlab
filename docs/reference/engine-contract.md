@@ -12,7 +12,7 @@ All commands use the **Git repository root** as the current working directory un
 | `create-graph` | implemented | Export `.repository-analysis/graph/` from index |
 | `analyze-issue` | implemented | Issue prep: `00-issue-analysis.md`, `01-generated-issue.md` |
 | `analyze-mr` | implemented | MR impact from Git revision + index; if index `git_head` ≠ repo HEAD, re-indexes MR changed paths only |
-| `update-issue` | implemented | Preview `05-issue-update.md` from MR run artifacts |
+| `update-issue` | partial | Preview `05-issue-update.md` from MR run artifacts; **nearest QA paths** per [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md) (spec; engine gap) |
 | `validate-artifacts` | implemented | Deterministic check of run-dir outputs (no GitLab) |
 | `index-repository` | deprecated | Runs `create-index` then `create-graph` |
 
@@ -68,10 +68,16 @@ Skills run `validate-artifacts` after a successful engine command and **HALT** o
 
 ### Update Issue
 
+Requires a completed **Analyze MR** run in the same `--run-dir` (at minimum `01-mr-analysis.md`).
+
 | File | Producer |
 | --- | --- |
 | `05-issue-update.md` | engine |
 | `issue-update.json` | engine (structured preview; `gitlab_apply` always false) |
+
+**QA dependency chains:** The preview must surface **nearest** runtime paths (diff seed → database/app layers → primary AutoSys **job** and **box**), not flat job inventories. Specification: [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md). Today the engine assembles section excerpts from MR markdown and copies `runtime-impact.json` targets; full nearest-path promotion is **not** implemented yet.
+
+`issue-update.json` (current `schema_version` 1) includes `runtime_targets` mirrored from MR analysis. Target `schema_version` 2 adds `primary_qa_targets`, `nearest_paths`, and `unresolved` per the spec above.
 
 GitLab writes are **never** performed by the engine; skills apply via MCP/token after user confirmation.
 
@@ -99,3 +105,5 @@ Synced to `.github/skills/` by `skills/mr-impact-method/scripts/setup.py`:
 | `impact_from_seeds` | `analyze-mr` | Changed paths, touched symbols, linked JIL jobs |
 
 Both apply bounded BFS with the same limits in `graph/query.py`.
+
+**Nearest paths (planned):** MR analysis must compute **upstream** paths from diff-accurate seeds to primary AutoSys jobs/boxes for QA; see [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md). Raw `impact-graph.json` edge lists are not sufficient for Issue update or test planning.

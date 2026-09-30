@@ -14,7 +14,7 @@ Use this sequence for a feature from requirements through MR to Issue update. Ea
 | 2 | `/create_index` | Git repo at project root | `.repository-analysis/index/` |
 | 3 | `/create_graph` | Index SQLite from step 2 | `.repository-analysis/graph/` (optional; recommended for graph traversal) |
 | 4 | `/analyze-mr` | **Index required**; graph optional; Issue files in `run/` optional | `run/` — MR reports + JSON per [engine-contract](../../../docs/reference/engine-contract.md) |
-| 5 | `/update-issue` | MR artifacts in `run/` | `05-issue-update.md`, `issue-update.json` (GitLab apply opt-in) |
+| 5 | `/update-issue` | MR artifacts in `run/` | `05-issue-update.md`, `issue-update.json` — **nearest QA/runtime chains** per [nearest-runtime-impact-paths.md](../../../docs/reference/nearest-runtime-impact-paths.md) (GitLab apply opt-in) |
 
 After review, clean ephemeral `run/` unless the user keeps artifacts ([run-cleanup.md](run-cleanup.md)).
 

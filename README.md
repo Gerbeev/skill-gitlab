@@ -205,7 +205,7 @@ Focus on runtime jobs and QA scope (AutoSys/JIL where indexed).
 
 Requires an existing index (`/create_index` first). Revision format: `base..head` (e.g. `origin/main..HEAD`).
 
-Graph rules: bounded paths from **changed symbols**, not “all jobs in module” ([issue-anchored-graph-traversal](docs/reference/issue-anchored-graph-traversal.md)).
+Graph rules: bounded **nearest** paths from **diff-accurate** seeds to primary AutoSys job/box — not “all jobs in module” ([issue-anchored-graph-traversal](docs/reference/issue-anchored-graph-traversal.md), [nearest-runtime-impact-paths](docs/reference/nearest-runtime-impact-paths.md)).
 
 ---
 
@@ -222,7 +222,7 @@ Use artifacts in .repository-analysis/run/
 Generate 05-issue-update.md preview only. Do not write to GitLab unless I say "apply".
 ```
 
-**You get:** `05-issue-update.md` and `issue-update.json` (engine preview; GitLab apply stays in the skill).
+**You get:** `05-issue-update.md` and `issue-update.json` (engine preview; GitLab apply stays in the skill). Target content includes **QA / runtime (nearest paths)** for testers — job, box, and dependency chain from the MR change ([nearest-runtime-impact-paths](docs/reference/nearest-runtime-impact-paths.md)); full engine support is in progress.
 
 To apply remotely: confirm explicitly; use GitLab MCP or token ([gitlab-integration](docs/reference/gitlab-integration.md)).
 

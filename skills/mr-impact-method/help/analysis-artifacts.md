@@ -18,7 +18,7 @@ Gitignored. Typical contents:
 
 - **Issue:** `00-issue-analysis.md`, `01-generated-issue.md`, `issue-intent.json`
 - **MR:** `01-mr-analysis.md` … `04-test-plan.md`, JSON (`mr-context.json`, `impact-graph.json`, …)
-- **Update:** `05-issue-update.md`, `issue-update.json`
+- **Update:** `05-issue-update.md`, `issue-update.json` (should promote **nearest QA paths** from MR `runtime-impact.json` — see [nearest-runtime-impact-paths.md](../../../docs/reference/nearest-runtime-impact-paths.md))
 
 Unless the user asks to keep files, delete `run/` before a new skill run and after presenting results (`references/run-cleanup.md`).
 

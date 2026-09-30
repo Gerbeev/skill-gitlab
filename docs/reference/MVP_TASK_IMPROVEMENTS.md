@@ -125,7 +125,7 @@ Run once from the repository root (replace paths):
 python _mr-impact/scripts/run_engine.py --project-root . -- analyze-mr [args]
 
 - On non-zero exit: show stderr and STOP. Do not guess graph results.
-- On success: present paths to 01–04 markdown reports and offer to open runtime-impact.json.
+- On success: present paths to 01–04 markdown reports and **primary QA targets** from `runtime-impact.json` (nearest job/box chains per [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md)), not raw `impact-graph.json` job dumps.
 ```
 
 Stage 2 work: implement four `SKILL.md` files **strictly** from this pattern + TASK_STATEMENT §15.

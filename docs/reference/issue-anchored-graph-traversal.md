@@ -149,12 +149,14 @@ Use a subsection **Dependency context (anchored)**:
 
 | Aspect | `/analyze-issue` | `/analyze-mr` |
 | --- | --- | --- |
-| **Seeds** | Names/paths **explicit in Issue material** | **Changed symbols** from deterministic diff |
+| **Seeds** | Names/paths **explicit in Issue material** | **Changed symbols** from deterministic diff (`symbols_touched_by_diff`, line ranges) |
 | **Goal** | Clarify scope, risks, validation context for planning | QA/runtime scope for **this** change |
-| **Graph API** | `query-graph --anchors-from-issue …` (conceptual) | `analyze-mr` impact subgraph from `changed-symbols.json` |
-| **AutoSys** | Paths from Issue-mentioned jobs/code only | Paths from **changed** code/scripts to jobs |
+| **Graph API** | `query-graph --anchors-from-issue …` (conceptual) | Upstream paths from diff seeds to **primary** AutoSys jobs/boxes |
+| **AutoSys** | Paths from Issue-mentioned jobs/code only | **Nearest** paths from changed code/DB objects to jobs — not entire batches |
 
 Issue anchors and MR changed-symbol sets may **overlap**; MR analysis does not re-run Issue-wide expansion unless an anchor is still relevant to changed files.
+
+**Nearest paths:** MR and `/update-issue` must follow [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md): one (or few) evidence-backed chains per seed, job + box for QA, no sibling/batch explosion.
 
 ---
 
@@ -214,6 +216,21 @@ In `/analyze-issue` workflow steps, the agent must:
 ## 10. Related documents
 
 - [TASK_STATEMENT.md](TASK_STATEMENT.md) — bounded graph traversal (MR Phase 6–7)
+- [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md) — MR/update-issue QA chains (diff → job/box)
 - [V1_SCOPE.md](V1_SCOPE.md) — JIL adapter priority
 - [GLOSSARY.md](GLOSSARY.md) — anchor, runtime target, evidence
 - [boundary-catalog.example.json](boundary-catalog.example.json) — cross-repo hints only with local paths
+
+---
+
+## 11. `/update-issue` (downstream)
+
+`/update-issue` does **not** perform new graph walks. It promotes MR artifacts into `05-issue-update.md` / `issue-update.json`.
+
+Requirements:
+
+1. MR run must already contain nearest-path material in `runtime-impact.json` / `04-test-plan.md` (when implemented).
+2. Preview must include a dedicated **QA / runtime (nearest paths)** section suitable for GitLab Issue attachment.
+3. Skills must not list hundreds of jobs from `impact-graph.json` when nearest-path targets exist.
+
+See [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md) §6–7.

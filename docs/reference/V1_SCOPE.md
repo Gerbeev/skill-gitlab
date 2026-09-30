@@ -93,6 +93,7 @@ Optional: read `boundary-catalog.json`; optional GitLab MR metadata via MCP/toke
 ### Update Issue
 
 - Always local preview first (`05-issue-update.md`).
+- Preview must carry **nearest** QA dependency chains (primary AutoSys job + box) from MR analysis — see [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md). **Not yet fully implemented**; current preview excerpts MR markdown and coarse `runtime-impact.json`.
 - GitLab write only with explicit user confirmation via MCP or token ([gitlab-integration.md](gitlab-integration.md)).
 
 ### Skill packages (BMAD-shaped)
@@ -115,7 +116,7 @@ Optional: read `boundary-catalog.json`; optional GitLab MR metadata via MCP/toke
 ## V1 quality bar
 
 1. `create-index` reuses unchanged index data (content-hash skip).
-2. `/analyze-mr` produces actionable runtime/QA targets when JIL/scripts link to changed code (C# / SQL / JIL pilot stacks).
+2. `/analyze-mr` and `/update-issue` produce **nearest** actionable runtime/QA targets (job + box on an evidence path from diff seeds through DB/app layers), not exhaustive batch job lists — see [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md). Full stack chains are **in progress** (Phase 2b in [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md)).
 3. `/analyze-issue` does not invent ACs; gaps in `00-issue-analysis.md`.
 4. Run folder cleanup behavior documented and gitignored.
 5. All **five** skills invoke the same engine via `run_engine.py`.

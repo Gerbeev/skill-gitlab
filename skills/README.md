@@ -8,7 +8,7 @@ Copilot loads **`.github/skills/`** (five folders). Edit skills here, then re-ru
 | `mr-impact-method/` | Setup, `render_skill.py`, `run_engine.py`, shared `references/` (not a slash command) |
 | `_engine/` | Python `mr_impact` package (not a skill) |
 
-Canonical CLI and run artifacts: [docs/reference/engine-contract.md](../docs/reference/engine-contract.md).
+Canonical CLI and run artifacts: [docs/reference/engine-contract.md](../docs/reference/engine-contract.md). Nearest QA paths (MR → Issue update): [nearest-runtime-impact-paths.md](../docs/reference/nearest-runtime-impact-paths.md).
 
 ---
 

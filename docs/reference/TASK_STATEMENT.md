@@ -1030,6 +1030,8 @@ Which real processes/jobs/workflows should QA run or verify?
 
 This runtime/process impact analysis must feed directly into the generated test plan.
 
+**Nearest paths:** QA and Issue update must use the **shortest evidence-backed** chain per diff seed to a primary job (and box), not every job in a nightly batch. Product rules: [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md).
+
 ---
 
 ## Phase 8 — Test Discovery
@@ -1141,10 +1143,13 @@ The update should record:
 
 - observed implementation outcome;
 - validation evidence;
+- **nearest QA/runtime dependency chains** (primary AutoSys job and box, path from diff seed through DB/app layers) — see [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md);
 - relevant changed behavior;
 - known limitations;
 - follow-up work;
 - factual context that should be preserved in the Issue.
+
+The Issue update is **incomplete for QA** if it only lists changed files or a large job inventory without nearest paths, while the index contains evidence linking the change to schedulers.
 
 ## Inputs
 
@@ -1210,6 +1215,7 @@ generated Markdown
 contract changes
 implementation summary
 validation evidence
+nearest QA paths (job, box, dependency path, what to run/verify)
 ```
 
 Remote mutation is disabled by default. When enabled, use `GITLAB_TOKEN` or GitLab MCP after local preview ([gitlab-integration.md](gitlab-integration.md)).
@@ -1737,9 +1743,11 @@ Prepare the Issue update using the completed MR analysis and validation evidence
 
 Generate a local preview only.
 
-Include factual implementation outcome, relevant validation evidence, known limitations, and follow-up work.
+Include factual implementation outcome, relevant validation evidence, **nearest QA/runtime paths** (job + box), known limitations, and follow-up work.
 
 Do not automatically rewrite the Issue merely to make it match observed code.
+
+Do not dump exhaustive AutoSys job lists; use primary targets from [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md).
 ```
 
 Required output:

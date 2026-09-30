@@ -8,7 +8,7 @@ Load this when the user is unsure which MR Impact skill fits, or asks for the re
 2. `/create_index` — structural index (required before MR impact analysis)
 3. `/create_graph` — optional JSON graph for traversal
 4. `/analyze-mr` — MR/branch impact + runtime/QA scope
-5. `/update-issue` — preview Issue update from MR artifacts (GitLab apply opt-in)
+5. `/update-issue` — preview Issue update from MR artifacts, including **nearest QA paths** (job/box) when MR analysis provides them ([nearest-runtime-impact-paths.md](../../../docs/reference/nearest-runtime-impact-paths.md)); GitLab apply opt-in
 
 ## Run alone
 

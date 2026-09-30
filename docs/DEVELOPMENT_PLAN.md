@@ -13,7 +13,7 @@ Work proceeds **one plan item at a time**. Before each item, the implementer sta
 | Index + graph | Shipped (`create-index`, `create-graph`) |
 | Analyze Issue | Shipped (baseline) |
 | Analyze MR | MVP + `test_analyze_mr.py` |
-| Update Issue | Preview + chained test |
+| Update Issue | Preview + chained test; **nearest QA paths** spec only ([nearest-runtime-impact-paths.md](reference/nearest-runtime-impact-paths.md)) |
 | CI | `.github/workflows/engine.yml` |
 
 ## Phase 0 — Contract
@@ -40,6 +40,16 @@ Work proceeds **one plan item at a time**. Before each item, the implementer sta
 - [x] `update-issue --run-dir` → `05-issue-update.md`
 - [x] Test: chain after `analyze-mr`
 - [x] Structured `issue-update.json`
+
+## Phase 2b — Nearest runtime impact paths (critical)
+
+Spec: [reference/nearest-runtime-impact-paths.md](reference/nearest-runtime-impact-paths.md).
+
+- [ ] Diff-accurate seeds → upstream traversal (SQL/PL/SQL → app → JIL), not broad string BFS
+- [ ] `runtime-impact.json` `primary_qa_targets` + `path[]` (job + box)
+- [ ] `04-test-plan.md` / `03-impact-analysis.md` driven by primary targets only
+- [ ] `update-issue`: `## QA / runtime (nearest paths)` + `issue-update.json` schema v2
+- [ ] Engine tests: PL/SQL line change → single job chain (fixture repo)
 
 ## Phase 3 — Index quality
 
