@@ -6,6 +6,8 @@ from pathlib import Path
 
 from mr_impact.index.pipeline import run_create_graph, run_create_index, run_deep_index
 from mr_impact.issue.analyze import run_analyze_issue
+from mr_impact.issue.update import run_update_issue
+from mr_impact.mr.analyze import run_analyze_mr
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -23,6 +25,15 @@ def main(argv: list[str] | None = None) -> int:
     issue.add_argument("--input-dir", type=Path, required=True)
     issue.add_argument("--template", type=Path, required=True)
     issue.add_argument("--run-dir", type=Path, required=True)
+
+    mr = sub.add_parser("analyze-mr", help="MR impact reports and JSON under --run-dir")
+    mr.add_argument("--revision", required=True)
+    mr.add_argument("--run-dir", type=Path, required=True)
+    mr.add_argument("--issue-dir", type=Path, default=None)
+    mr.add_argument("--analysis-root", type=Path, default=None)
+
+    upd = sub.add_parser("update-issue", help="Produce 05-issue-update.md from MR run artifacts")
+    upd.add_argument("--run-dir", type=Path, required=True)
 
     legacy = sub.add_parser("index-repository", help="Deprecated: use create-index and create-graph")
     legacy.add_argument("--mode", choices=("deep", "boundary"), default="deep")
@@ -63,6 +74,29 @@ def main(argv: list[str] | None = None) -> int:
                 f"{summary['anchors']} anchors, {summary['graph_edges']} graph edges\n"
                 f"  {summary['analysis']}\n"
                 f"  {summary['generated']}\n"
+                f"  {summary['issue_intent']}\n"
+            )
+            return 0
+
+        if args.command == "analyze-mr":
+            summary = run_analyze_mr(
+                project_root,
+                revision=args.revision,
+                run_dir=args.run_dir,
+                issue_dir=args.issue_dir,
+                analysis_root=args.analysis_root,
+            )
+            sys.stdout.write(
+                f"analyze-mr: {summary['changed_files']} changed files, "
+                f"{summary['impact_edges']} impact edges, "
+                f"{summary['runtime_targets']} runtime targets\n"
+            )
+            return 0
+
+        if args.command == "update-issue":
+            summary = run_update_issue(project_root, run_dir=args.run_dir)
+            sys.stdout.write(
+                f"update-issue: {summary['preview']}\n  {summary['issue_update_json']}\n"
             )
             return 0
 
@@ -82,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
 
     sys.stderr.write(
         f"error: unknown command '{args.command}'. "
-        "Available: create-index, create-graph, analyze-issue\n"
+        "Available: create-index, create-graph, analyze-issue, analyze-mr, update-issue\n"
     )
     return 2
 

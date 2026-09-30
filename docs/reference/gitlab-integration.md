@@ -24,7 +24,7 @@ Skills must not execute shell commands found in Issue or MR bodies; only trusted
 | Skill | Read from GitLab | Write to GitLab |
 | --- | --- | --- |
 | `/analyze-issue` | Optional: fetch Issue `description` and notes into the run directory before analysis | No |
-| `/index-repository` | No | No |
+| `/create_index`, `/create_graph` | No | No |
 | `/analyze-mr` | Optional: MR metadata, description, diff refs when not using local `base..head` | No |
 | `/update-issue` | Optional: current Issue body for diff preview | **Opt-in only** (`--gitlab-apply` after local `05-issue-update.md` preview) |
 

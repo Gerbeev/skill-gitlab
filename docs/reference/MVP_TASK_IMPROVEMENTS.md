@@ -149,7 +149,7 @@ Stage 2 work: implement four `SKILL.md` files **strictly** from this pattern + T
 
 ## Architecture improvements (engine + docs)
 
-1. **Single entry CLI** — `mr-impact` with subcommands matching four skills; skills must not fork alternate orchestration.
+1. **Single entry CLI** — `mr-impact` with subcommands matching the five skills ([engine-contract.md](engine-contract.md)); skills must not fork alternate orchestration.
 2. **Adapter registry** — explicit registration in `adapters.py`; generic last; feature flags for heavy grammars.
 3. **Expansion module** — keep `expansion.py` API but V1 implements **in-repo** traversal only; cross-repo = read catalog edges without remote clone.
 4. **Template module** — `template.py` parses `GITLAB_ISSUE_TEMPLATE.md` headings and HTML comments for AI contract text.

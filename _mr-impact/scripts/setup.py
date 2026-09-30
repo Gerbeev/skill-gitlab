@@ -34,6 +34,7 @@ SHARED_REFERENCES = (
     "references/workflow-discipline.md",
     "references/validate-present.md",
     "references/analysis-inputs.md",
+    "references/run-cleanup.md",
 )
 
 

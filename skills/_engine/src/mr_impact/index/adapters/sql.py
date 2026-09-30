@@ -12,6 +12,42 @@ _CREATE = re.compile(
     re.I,
 )
 _FROM_JOIN = re.compile(r"\b(?:FROM|JOIN)\s+((?:\"[^\"]+\"|\w+)(?:\s*\.\s*(?:\"[^\"]+\"|\w+))*)", re.I)
+_CALL_EXEC = re.compile(
+    r"\b(?:CALL|EXEC(?:UTE)?)\s+((?:\"[^\"]+\"|\w+)(?:\s*\.\s*(?:\"[^\"]+\"|\w+))*)",
+    re.I,
+)
+_PKG_MEMBER_CALL = re.compile(
+    r"\b((?:\"[^\"]+\"|\w+)\s*\.\s*(?:\"[^\"]+\"|\w+))\s*(?:\(|;)",
+    re.I,
+)
+
+_SQL_SKIP_TARGETS = frozenset({"DUAL", "SYS", "DBMS_OUTPUT", "UTL_FILE", "SQL", "IMMEDIATE"})
+
+
+def _normalize_sql_name(raw: str) -> str:
+    return raw.replace('"', "").replace(" ", "")
+
+
+def _add_sql_edge(
+    edges: list[Edge],
+    seen: set[str],
+    target: str,
+    edge_type: str,
+    confidence: str,
+    evidence: str,
+    line: int,
+) -> None:
+    name = _normalize_sql_name(target)
+    if not name:
+        return
+    base = name.split(".")[-1].upper()
+    if base in _SQL_SKIP_TARGETS:
+        return
+    key = f"{edge_type}:{name}:{line}"
+    if key in seen:
+        return
+    seen.add(key)
+    edges.append(Edge(name, edge_type, confidence, evidence, line, line))
 
 
 class SqlAdapter(Adapter):
@@ -37,21 +73,39 @@ class SqlAdapter(Adapter):
             symbols.append(Symbol(name, sym_kind, line, line))
 
         for match in _FROM_JOIN.finditer(text):
-            name = match.group(1).replace('"', "").replace(" ", "")
             line = text[: match.start()].count("\n") + 1
-            key = f"{name}:{line}"
-            if key in seen:
-                continue
-            seen.add(key)
-            edges.append(
-                Edge(
-                    name,
-                    "sql_reference",
-                    "low",
-                    f"FROM/JOIN in {rel_path}",
-                    line,
-                    line,
-                )
+            _add_sql_edge(
+                edges,
+                seen,
+                match.group(1),
+                "sql_reference",
+                "low",
+                f"FROM/JOIN in {rel_path}",
+                line,
+            )
+
+        for match in _CALL_EXEC.finditer(text):
+            line = text[: match.start()].count("\n") + 1
+            _add_sql_edge(
+                edges,
+                seen,
+                match.group(1),
+                "sql_call",
+                "medium",
+                f"CALL/EXEC in {rel_path}",
+                line,
+            )
+
+        for match in _PKG_MEMBER_CALL.finditer(text):
+            line = text[: match.start()].count("\n") + 1
+            _add_sql_edge(
+                edges,
+                seen,
+                match.group(1),
+                "sql_call",
+                "medium",
+                f"package member call in {rel_path}",
+                line,
             )
 
         return symbols, edges, []

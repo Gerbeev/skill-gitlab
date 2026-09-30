@@ -12,7 +12,10 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 
 USES_INDEX = frozenset({"analyze-issue", "analyze-mr"})
+REQUIRES_INDEX = frozenset({"analyze-mr"})
 USES_GRAPH = frozenset({"analyze-mr"})
+RUN_DIR = ".repository-analysis/run"
+MR_MARKER = "01-mr-analysis.md"
 
 
 def _import_jinja2() -> bool:
@@ -68,16 +71,28 @@ def owed(skill_dir: Path, project_root: Path | None) -> list[str]:
             "needs `index/repository-index.sqlite`. Offer `/create_index` (create-index skill) first."
         )
 
-    if skill_name in USES_INDEX and not sqlite.is_file():
+    if skill_name in USES_INDEX and skill_name not in REQUIRES_INDEX and not sqlite.is_file():
         notes.append(
             "works best after `/create_index` — `.repository-analysis/index/` is missing. "
             "Offer create-index; proceed with Issue text only if the user accepts."
         )
 
+    if skill_name in REQUIRES_INDEX and not sqlite.is_file():
+        notes.append(
+            "requires `index/repository-index.sqlite` — `analyze-mr` exits with an error without create-index."
+        )
+
     if skill_name in USES_GRAPH and sqlite.is_file() and not _graph_manifest(project_root).is_file():
         notes.append(
-            "has index but no `graph/graph-manifest.json`. For JSON traversal offer `/create_graph`; "
-            "otherwise use index SQLite/summary only."
+            "has index but no `graph/graph-manifest.json`. For JSON export offer `/create_graph`; "
+            "analyze-mr still uses index SQLite when graph JSON is absent."
+        )
+
+    run_dir = project_root / RUN_DIR
+    mr_analysis = run_dir / MR_MARKER
+    if skill_name == "update-issue" and not mr_analysis.is_file():
+        notes.append(
+            f"needs `{RUN_DIR}/{MR_MARKER}` from analyze-mr before update-issue can run."
         )
 
     discipline = skill_dir / "references" / "workflow-discipline.md"

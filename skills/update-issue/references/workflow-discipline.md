@@ -1,6 +1,6 @@
 # Workflow discipline (MR Impact)
 
-This file is shared across all four Copilot skills. Follow it for the whole run.
+This file is shared across all five Copilot skills. Follow it for the whole run.
 
 ## Step-file architecture
 
@@ -26,3 +26,7 @@ This file is shared across all four Copilot skills. Follow it for the whole run.
 
 - Lead with a short summary; put long reports in files under `.repository-analysis/`.
 - On present steps, follow `references/validate-present.md`.
+
+## Run directory cleanup
+
+Before and after runs, follow `references/run-cleanup.md`. Do not delete `index/`, `graph/`, or `catalog/`.

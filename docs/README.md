@@ -1,18 +1,20 @@
 # Documentation
 
-**Install and step-by-step Copilot usage:** see the root **[README.md](../README.md)** (setup, `.github/skills/`, four stages).
+**Install and step-by-step Copilot usage:** see the root **[README.md](../README.md)** (setup, `.github/skills/`, staged workflow).
 
 | Document | Purpose |
 | --- | --- |
+| [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) | **Roadmap** — phases, checkboxes, what is done vs next |
+| [reference/engine-contract.md](reference/engine-contract.md) | **Canonical CLI** and run artifacts (skills must match) |
 | [reference/GLOSSARY.md](reference/GLOSSARY.md) | **Glossary** — MR Impact, render_skill, engine, artifacts, indexing terms |
 | [reference/analysis-inputs.md](reference/analysis-inputs.md) | Which index/graph files downstream skills read |
 | [reference/issue-anchored-graph-traversal.md](reference/issue-anchored-graph-traversal.md) | How Issue analysis searches the graph (anchors, AutoSys paths, no module-wide job explosion) |
 | [GITLAB_ISSUE_TEMPLATE.md](GITLAB_ISSUE_TEMPLATE.md) | Mirror of the Issue template (canonical: `.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md`) |
-| [reference/TASK_STATEMENT.md](reference/TASK_STATEMENT.md) | Full product specification (four skills, shared engine) |
+| [reference/TASK_STATEMENT.md](reference/TASK_STATEMENT.md) | Full product specification (shared engine) |
 | [reference/V1_SCOPE.md](reference/V1_SCOPE.md) | **MVP delivery boundary** |
 | [reference/MVP_TASK_IMPROVEMENTS.md](reference/MVP_TASK_IMPROVEMENTS.md) | Design rationale and `examples/` patterns |
 | [reference/python-setup.md](reference/python-setup.md) | Python 3.11+ without `uv` |
-| `tools/validate_skills.py` | Deterministic checks for the four Copilot skills |
+| `tools/validate_skills.py` | Deterministic checks for the five Copilot skills |
 | [reference/gitlab-integration.md](reference/gitlab-integration.md) | GitLab token + MCP (read / opt-in write) |
 | [reference/boundary-catalog.example.json](reference/boundary-catalog.example.json) | Optional cross-repo boundary catalog seed |
 
@@ -25,7 +27,7 @@ Reference examples (not shipped as product code):
 
 ## Copilot: project skills
 
-**Four Copilot skills only** — BMAD-style packages under `skills/`, synced to `.github/skills/`:
+**Five Copilot skills** — BMAD-style packages under `skills/`, synced to `.github/skills/`:
 
 ```text
 skills/analyze-issue/       # workflow.md + step-*.md + GITLAB_ISSUE_TEMPLATE.md
@@ -36,7 +38,7 @@ skills/update-issue/
 skills/mr-impact-method/    # module + shared scripts (not a slash command)
 skills/_engine/             # shared mr_impact Python package
 _mr-impact/                 # runtime after setup (render_skill, config)
-.github/skills/             # exactly four folders, synced by setup
+.github/skills/             # exactly five folders, synced by setup
 ```
 
 **Setup** (repo root, not a skill):

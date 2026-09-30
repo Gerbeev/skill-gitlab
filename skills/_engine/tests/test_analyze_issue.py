@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -51,8 +52,14 @@ class AnalyzeIssueTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 0, msg=proc.stderr)
             self.assertTrue((run_dir / "00-issue-analysis.md").is_file())
             self.assertTrue((run_dir / "01-generated-issue.md").is_file())
+            self.assertTrue((run_dir / "issue-intent.json").is_file())
             body = (run_dir / "00-issue-analysis.md").read_text(encoding="utf-8")
             self.assertIn("PAYMENT_RECON_EOD", body)
+            intent = json.loads((run_dir / "issue-intent.json").read_text(encoding="utf-8"))
+            self.assertEqual(intent.get("schema_version"), 1)
+            self.assertIn("PAYMENT_RECON_EOD", intent.get("anchors", []))
+            self.assertIn("notes.md", intent.get("input_files", []))
+            self.assertIsInstance(intent.get("gaps"), list)
 
 
 if __name__ == "__main__":

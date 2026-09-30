@@ -1,25 +1,37 @@
 # V1 Scope (MVP)
 
-This document defines what the **first shippable version** of the repository must implement. [TASK_STATEMENT.md](TASK_STATEMENT.md) remains the long-term product specification; when the two differ, **V1 wins for delivery planning**.
+This document defines what the **first shippable version** of the repository must implement. [TASK_STATEMENT.md](TASK_STATEMENT.md) remains the long-term product specification; when the two differ, **V1 wins for delivery planning**. **CLI commands and run artifacts** are canonical in [engine-contract.md](engine-contract.md).
 
 ## V1 product surface
 
-Four Copilot project skills under `.github/skills/`, each a thin wrapper over one shared engine:
+**Five** Copilot project skills under `.github/skills/`, each a thin wrapper over one shared engine (`mr_impact`):
 
-| Skill               | Engine command (conceptual) | Required V1 behavior                                                                     |
-| ------------------- | --------------------------- | ---------------------------------------------------------------------------------------- |
-| `/analyze-issue`    | `analyze-issue`             | `00-issue-analysis.md` + `01-generated-issue.md` from scoped input + skill-root template |
-| `/index-repository` | `index-repository`          | **DEEP** index for the **current** Git repository only                                   |
-| `/analyze-mr`       | `analyze-mr`                | Deterministic diff → symbols → bounded graph → runtime/QA hints → reports                |
-| `/update-issue`     | `update-issue`              | Local preview `05-issue-update.md`; GitLab apply **opt-in** (token or MCP)               |
+| Skill | Engine command | Required V1 behavior |
+| --- | --- | --- |
+| `/analyze-issue` | `analyze-issue` | `00-issue-analysis.md` + `01-generated-issue.md` from scoped input + skill-root template |
+| `/create_index` | `create-index` | **DEEP** structural index → `.repository-analysis/index/` only |
+| `/create_graph` | `create-graph` | Export graph JSON from index SQLite → `.repository-analysis/graph/` |
+| `/analyze-mr` | `analyze-mr` | Deterministic diff → symbols → bounded graph → runtime/QA hints → reports + JSON |
+| `/update-issue` | `update-issue` | Local preview `05-issue-update.md`; GitLab apply **opt-in** (token or MCP) |
+
+**Not a skill:** `index-repository` CLI (deprecated) runs `create-index` then `create-graph` in one process.
+
+### Engine delivery status (this repo)
+
+| Command | Shipped in `skills/_engine` |
+| --- | --- |
+| `create-index`, `create-graph` | Yes |
+| `analyze-issue` | Yes (baseline) |
+| `analyze-mr` | Yes (MVP; see [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md) for follow-ups) |
+| `update-issue` | Yes (markdown preview) |
 
 ## Ephemeral vs persistent storage
 
-| Path                                                 | Lifecycle                                                                                                                                                                       |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.repository-analysis/run/`                          | **Per-run outputs** (Issue + MR + update previews). **Gitignored.** Cleared before each new skill run and after the user finishes reviewing, unless they ask to keep artifacts. |
-| `.repository-analysis/index/`, `graph/`              | **Persistent** repository index; reused across MR runs.                                                                                                                         |
-| `.repository-analysis/catalog/boundary-catalog.json` | **Optional**, curated; not deleted with run cleanup.                                                                                                                            |
+| Path | Lifecycle |
+| --- | --- |
+| `.repository-analysis/run/` | **Per-run outputs** (Issue + MR + update previews). **Gitignored.** Cleared before each new skill run and after the user finishes reviewing, unless they ask to keep artifacts. |
+| `.repository-analysis/index/`, `graph/` | **Persistent** repository index; reused across MR runs. |
+| `.repository-analysis/catalog/boundary-catalog.json` | **Optional**, curated; not deleted with run cleanup. |
 
 Default CLI flag: `--run-dir .repository-analysis/run`.
 
@@ -44,8 +56,8 @@ The authoritative template for `/analyze-issue` ships with the skill:
 
 ### Indexing (DEEP only)
 
-- **One repository at a time** (where the agent runs `/index-repository`).
-- Incremental refresh when Git HEAD / file hashes change.
+- **One repository at a time** (where the agent runs `/create_index`).
+- Incremental refresh when Git HEAD / file hashes change (`create-index`).
 
 **Adapter priority (V1 implementation order):**
 
@@ -62,7 +74,7 @@ Missing optional grammars must not fail indexing; report unread languages honest
 **Recommended approach:**
 
 - Ship example: [boundary-catalog.example.json](boundary-catalog.example.json)
-- Runtime path: `.repository-analysis/catalog/boundary-catalog.json` (copy or generate offline)
+- Runtime path: `.repository-analysis/catalog/boundary-catalog.json` (copy or generate offline; setup may seed from example)
 - **Read-only** during `/analyze-mr`: map local boundary entities (tables, jobs, APIs) to **candidate repository names** and paths
 - **No** automatic clone or deep-index of other repos in V1
 
@@ -76,18 +88,18 @@ This replaces a heavy org-wide indexer for MVP while matching TASK_STATEMENT cro
 
 ### Analyze MR
 
-Phases per TASK_STATEMENT §4 with bounded graph traversal and in-repo runtime discovery (JIL, scripts, launchers).
+Phases per TASK_STATEMENT §4 with bounded graph traversal and in-repo runtime discovery (JIL, scripts, launchers). Outputs per [engine-contract.md](engine-contract.md).
 
 Optional: read `boundary-catalog.json`; optional GitLab MR metadata via MCP/token.
 
 ### Update Issue
 
-- Always local preview first.
+- Always local preview first (`05-issue-update.md`).
 - GitLab write only with explicit user confirmation via MCP or token ([gitlab-integration.md](gitlab-integration.md)).
 
 ### Skill packages (BMAD-shaped)
 
-- **Copilot:** exactly four folders under `.github/skills/` (synced by `skills/mr-impact-method/scripts/setup.py`).
+- **Copilot:** exactly **five** folders under `.github/skills/` (synced by `skills/mr-impact-method/scripts/setup.py`).
 - **Source:** `skills/<name>/` — `SKILL.md`, `customize.toml`, `workflow.md`, `step-*.md`, `references/`.
 - **Module (not a skill):** `skills/mr-impact-method/scripts/` — `render_skill.py`, `setup.py`, `run_engine.py` (BMAD `bmad/` pattern).
 - **Runtime:** `_mr-impact/`; rendered workflows under `_mr-impact/render/` (gitignored).
@@ -104,17 +116,19 @@ Optional: read `boundary-catalog.json`; optional GitLab MR metadata via MCP/toke
 
 ## V1 quality bar
 
-1. `/index-repository` reuses unchanged index data.
+1. `create-index` reuses unchanged index data (content-hash skip).
 2. `/analyze-mr` produces actionable runtime/QA targets when JIL/scripts link to changed code (C# / SQL / JIL pilot stacks).
 3. `/analyze-issue` does not invent ACs; gaps in `00-issue-analysis.md`.
 4. Run folder cleanup behavior documented and gitignored.
-5. All four skills invoke the same engine.
+5. All **five** skills invoke the same engine via `run_engine.py`.
 
 ## Document map
 
 | Document | Role |
 | --- | --- |
 | [TASK_STATEMENT.md](TASK_STATEMENT.md) | Full product specification |
+| [engine-contract.md](engine-contract.md) | Canonical CLI and artifacts |
+| [../DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md) | Phased implementation checklist |
 | **V1_SCOPE.md** (this file) | MVP delivery boundary |
 | [GLOSSARY.md](GLOSSARY.md) | Definitions of skills, engine, render_skill, artifacts |
 | [MVP_TASK_IMPROVEMENTS.md](MVP_TASK_IMPROVEMENTS.md) | Rationale and patterns |

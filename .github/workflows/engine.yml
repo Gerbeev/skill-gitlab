@@ -1,0 +1,67 @@
+name: engine
+
+on:
+  push:
+    paths:
+      - "skills/_engine/**"
+      - "skills/mr-impact-method/**"
+      - "skills/**/SKILL.md"
+      - "tools/validate_skills.py"
+      - ".github/workflows/engine.yml"
+  pull_request:
+    paths:
+      - "skills/_engine/**"
+      - "skills/mr-impact-method/**"
+      - "skills/**/SKILL.md"
+      - "tools/validate_skills.py"
+      - ".github/workflows/engine.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install method dependencies
+        run: python -m pip install -r skills/mr-impact-method/scripts/requirements.txt
+      - name: Setup smoke (bundle engine and sync skills)
+        run: python skills/mr-impact-method/scripts/setup.py --project-root .
+      - name: Verify setup status
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import sys
+
+          out = subprocess.check_output(
+              [
+                  sys.executable,
+                  "skills/mr-impact-method/scripts/setup.py",
+                  "--project-root",
+                  ".",
+                  "--status",
+              ],
+              text=True,
+          )
+          status = json.loads(out)
+          assert status.get("engine_bundled"), status
+          assert status.get("config_exists"), status
+          expected = set(status.get("expected_skills") or [])
+          installed = set(status.get("github_skills") or [])
+          missing = expected - installed
+          assert not missing, f"missing .github/skills: {sorted(missing)} ({status})"
+          extra = status.get("extra_github_skills") or []
+          assert not extra, f"unexpected .github/skills: {extra}"
+          print("setup smoke ok:", len(installed), "skills")
+          PY
+      - name: Engine unit tests
+        working-directory: skills/_engine
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v
+      - name: Validate Copilot skills
+        run: python tools/validate_skills.py --strict
+      - name: Render skill tests
+        run: python skills/mr-impact-method/scripts/tests/test_render_skills.py

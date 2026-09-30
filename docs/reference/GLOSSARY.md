@@ -8,10 +8,10 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 
 | Term                 | Meaning                                                                                                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **MR Impact**        | The product: four GitHub Copilot project skills plus one shared Python engine for Issue analysis, repository indexing, Merge Request impact analysis, and Issue updates. |
+| **MR Impact**        | The product: five GitHub Copilot project skills plus one shared Python engine for Issue analysis, repository indexing, graph export, Merge Request impact analysis, and Issue updates. |
 | **MR Impact Method** | The installable module (`skills/mr-impact-method/`) that holds `bmod.toml`, shared scripts, and config templates. Not a Copilot slash command.                           |
 | **V1 / MVP**         | First shippable version defined in [V1_SCOPE.md](V1_SCOPE.md). Narrower than the full [TASK_STATEMENT.md](TASK_STATEMENT.md).                                            |
-| **TASK_STATEMENT**   | Long-term product specification: all four functions, evidence model, and quality bar.                                                                                    |
+| **TASK_STATEMENT**   | Long-term product specification: evidence model and quality bar. **Shipped skill/CLI surface:** [engine-contract.md](engine-contract.md).                                                                                    |
 | **Pilot repository** | A real internal repo used to validate indexing and MR analysis before wider rollout.                                                                                     |
 
 ---
@@ -53,7 +53,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | Term                    | Meaning                                                                                                                                                                                                           |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`_mr-impact/`**       | Project-local runtime created by **setup**: `config.toml`, copy of hub scripts, `custom/`, and generated `render/` snapshots.                                                                                     |
-| **Setup (`setup.py`)**  | `skills/mr-impact-method/scripts/setup.py`: writes config, copies scripts to `_mr-impact/scripts/`, syncs the four skills to `.github/skills/`, seeds optional boundary catalog. Not invoked via a slash command. |
+| **Setup (`setup.py`)**  | `skills/mr-impact-method/scripts/setup.py`: writes config, copies scripts to `_mr-impact/scripts/`, syncs the five skills to `.github/skills/`, seeds optional boundary catalog. Not invoked via a slash command. |
 | **`config.toml`**       | Central config under `_mr-impact/` (from `assets/config.template.toml`): paths to engine, run dir, index root, catalog file.                                                                                      |
 | **`run_engine.py`**     | Wrapper that runs `python -m mr_impact …` with `PYTHONPATH` set to `skills/_engine/src` (no `uv` required). Used in workflow step files.                                                                                    |
 | **`resolve_config.py`** | Resolves merged TOML config layers to JSON (BMAD-derived).                                                                                                                                                        |
@@ -64,9 +64,9 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 
 | Term                    | Meaning                                                                                                                                                                                        |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Shared engine**       | Single implementation used by all four skills: indexing, graph, adapters, diff, Issue/MR analysis, reports. No duplicated business logic in skill Markdown.                                    |
+| **Shared engine**       | Single implementation used by all five skills: indexing, graph, adapters, diff, Issue/MR analysis, reports. No duplicated business logic in skill Markdown.                                    |
 | **`mr_impact`**         | Python package name under `skills/_engine/src/mr_impact/`.                                                                                                                                     |
-| **`mr-impact` CLI**     | Console entry point (`python -m mr_impact` or `mr-impact`) exposing subcommands: `analyze-issue`, `index-repository`, `analyze-mr`, `update-issue`, and supporting commands.                   |
+| **`mr-impact` CLI**     | Console entry point (`python -m mr_impact`): `create-index`, `create-graph`, `analyze-issue`, `analyze-mr`, `update-issue`; legacy `index-repository` (deprecated). See [engine-contract.md](engine-contract.md).                   |
 | **Adapter**             | Pluggable extractor for a file type or operational format (Python `ast`, JIL, SQL, C# structure, generic paths, etc.). Outputs symbols, nodes, and edges with **evidence** and **confidence**. |
 | **Reader (iFlow)**      | Optional parsers in `mr_impact/readers/` (from `examples/iFlow`): `python_ast` (stdlib) and `treesitter` (optional grammars). Feeds adapters when wired.                                       |
 | **Deterministic layer** | Git, diff, parsing, graph traversal, artifact validation — must not be replaced by LLM guessing.                                                                                               |
@@ -82,8 +82,11 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | **Persistent index** | `.repository-analysis/index/` and `.repository-analysis/graph/` — reused across MR runs; not deleted with run cleanup. |
 | **`00-issue-analysis.md`** | Analyze Issue: analysis, gaps, assumptions vs requirements, DoR signals. |
 | **`01-generated-issue.md`** | Analyze Issue: GitLab-ready Issue body matching current template section order. |
+| **`issue-intent.json`** | Analyze Issue: structured gaps, anchors, bounded dependency paths. |
 | **`01-mr-analysis.md` … `04-test-plan.md`** | Analyze MR human reports (summary, change context, impact, QA plan). |
 | **`05-issue-update.md`** | Update Issue: preview of proposed Issue changes after MR analysis. |
+| **`issue-update.json`** | Update Issue: structured preview (`gitlab_apply` always false in engine). |
+| **`boundary-hints.json`** | Analyze MR: optional cross-repo hints from boundary catalog matches. |
 | **Machine-readable JSON** | e.g. `mr-context.json`, `changed-symbols.json`, `impact-graph.json`, `runtime-impact.json`, `test-impact.json` — produced by the engine for tooling and skill presentation. |
 | **`GITLAB_ISSUE_TEMPLATE.md`** | Authoritative Issue structure for `/analyze-issue`; canonical copy in `.github/skills/analyze-issue/`. Mirror in `docs/` for readability. |
 
@@ -124,7 +127,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | `skills/<skill-name>/` | Skill source (workflow, steps, template for analyze-issue). |
 | `skills/mr-impact-method/` | Module scripts and `bmod.toml`; not a slash command. |
 | `skills/_engine/` | Python engine package. |
-| `.github/skills/` | Copilot-facing copies (four folders only). |
+| `.github/skills/` | Copilot-facing copies (five skill folders). |
 | `_mr-impact/` | Installed runtime after setup. |
 | `.repository-analysis/` | Index, graph, catalog, and ephemeral `run/`. |
 | `examples/BMAD-METHOD`, `examples/iFlow` | Reference implementations; not shipped as product code. |
@@ -134,6 +137,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 ## Related documents
 
 - [docs/README.md](../README.md) — Copilot usage examples  
+- [engine-contract.md](engine-contract.md) — Canonical CLI and run artifacts  
 - [V1_SCOPE.md](V1_SCOPE.md) — MVP boundaries  
 - [gitlab-integration.md](gitlab-integration.md) — GitLab token and MCP  
 - [skills/README.md](../../skills/README.md) — Skill catalog  

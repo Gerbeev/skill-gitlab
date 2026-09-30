@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -61,6 +62,47 @@ def _section_gaps(template: str, combined_input: str) -> list[str]:
     return gaps
 
 
+def build_issue_intent_payload(
+    *,
+    generated_at: str,
+    input_dir: Path,
+    template_path: Path,
+    input_files: list[str],
+    gaps: list[str],
+    anchors: set[str],
+    paths: list[dict],
+    repository_git_head: str | None,
+    index_present: bool,
+    graph_json_present: bool,
+) -> dict:
+    edge_cap = 50
+    serialized_edges = [
+        {
+            "from_file": edge.get("from_file"),
+            "target": edge.get("target"),
+            "type": edge.get("type"),
+            "confidence": edge.get("confidence"),
+        }
+        for edge in paths[:edge_cap]
+    ]
+    return {
+        "schema_version": 1,
+        "generated_at": generated_at,
+        "input_dir": str(input_dir),
+        "template_path": str(template_path),
+        "repository_git_head": repository_git_head,
+        "index_present": index_present,
+        "graph_json_present": graph_json_present,
+        "input_files": input_files,
+        "gaps": gaps,
+        "anchors": sorted(anchors),
+        "anchor_count": len(anchors),
+        "dependency_paths": serialized_edges,
+        "graph_edge_count": len(paths),
+        "graph_edges_truncated": len(paths) > edge_cap,
+    }
+
+
 def run_analyze_issue(
     project_root: Path,
     *,
@@ -94,6 +136,24 @@ def run_analyze_issue(
     now = datetime.now(timezone.utc).isoformat()
     analysis_path = run_dir / "00-issue-analysis.md"
     generated_path = run_dir / "01-generated-issue.md"
+    intent_path = run_dir / "issue-intent.json"
+
+    intent_payload = build_issue_intent_payload(
+        generated_at=now,
+        input_dir=input_dir,
+        template_path=template_path,
+        input_files=[name for name, _ in inputs],
+        gaps=gaps,
+        anchors=anchors,
+        paths=paths,
+        repository_git_head=head,
+        index_present=indexed,
+        graph_json_present=graph_json,
+    )
+    intent_path.write_text(
+        json.dumps(intent_payload, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
 
     analysis_lines = [
         "# Issue analysis",
@@ -182,6 +242,7 @@ def run_analyze_issue(
         "run_dir": str(run_dir),
         "analysis": str(analysis_path),
         "generated": str(generated_path),
+        "issue_intent": str(intent_path),
         "input_files": len(inputs),
         "anchors": len(anchors),
         "graph_edges": len(paths),

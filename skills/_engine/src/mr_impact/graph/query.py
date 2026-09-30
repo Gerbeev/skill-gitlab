@@ -97,3 +97,14 @@ def anchored_paths(
             queue.append((nxt, depth + 1, path + [edge]))
 
     return results[:max_nodes]
+
+
+def impact_from_seeds(
+    project_root: Path,
+    seeds: set[str],
+    *,
+    max_depth: int = 10,
+    max_nodes: int = 200,
+) -> list[dict]:
+    """Bounded traversal from changed paths, symbols, or graph targets."""
+    return anchored_paths(project_root, seeds, max_depth=max_depth, max_nodes=max_nodes)

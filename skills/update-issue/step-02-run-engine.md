@@ -6,6 +6,8 @@ python "{project-root}/_mr-impact/scripts/run_engine.py" --project-root "{projec
 
 Non-zero exit → **HALT**.
 
+Verify `05-issue-update.md` and `issue-update.json` exist.
+
 ## NEXT
 
 `{{ rendered("step-03-present-and-apply.md") }}`

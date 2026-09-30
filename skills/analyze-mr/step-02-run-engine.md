@@ -8,7 +8,12 @@ Add `--issue-dir` when Issue artifacts are available.
 
 Non-zero exit → **HALT**.
 
-Verify human reports `01`–`04` and JSON artifacts exist.
+Verify engine outputs exist under `run/`:
+
+- Markdown: `01-mr-analysis.md` … `04-test-plan.md`
+- JSON: `mr-context.json`, `changed-symbols.json`, `impact-graph.json`, `runtime-impact.json`, `test-impact.json`, `boundary-hints.json` (last may be empty hints if no catalog)
+
+Canonical list: `{project-root}/docs/reference/engine-contract.md` (Analyze MR section).
 
 ## NEXT
 

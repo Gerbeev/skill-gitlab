@@ -1,4 +1,4 @@
-"""Render all four Copilot skills (requires jinja2)."""
+"""Render all five Copilot skills (requires jinja2)."""
 
 from __future__ import annotations
 

@@ -1,21 +1,24 @@
 # Task Statement
 
-> **Delivery note:** [V1_SCOPE.md](V1_SCOPE.md) is the **authoritative MVP boundary** (single-repo DEEP indexing, optional read-only boundary catalog stub, no automatic cross-repo deep expansion). [MVP_TASK_IMPROVEMENTS.md](MVP_TASK_IMPROVEMENTS.md) explains simplifications and patterns from `examples/`. This document remains the **full product specification** for later versions.
+> **Delivery note:** [V1_SCOPE.md](V1_SCOPE.md) is the **authoritative MVP boundary** (single-repo DEEP indexing, optional read-only boundary catalog stub, no automatic cross-repo deep expansion). [MVP_TASK_IMPROVEMENTS.md](MVP_TASK_IMPROVEMENTS.md) explains simplifications and patterns from `examples/`. **Shipped Copilot skills and CLI commands** are canonical in [engine-contract.md](engine-contract.md). This document remains the **full product specification** for later versions.
 
 ## 1. Purpose
 
-Build a local-first Copilot Skill suite with four user-facing skills backed by one shared implementation engine:
+Build a local-first Copilot Skill suite with **five** user-facing skills backed by one shared implementation engine:
 
 1. **`/analyze-issue`**
-2. **`/index-repository`**
-3. **`/analyze-mr`**
-4. **`/update-issue`**
+2. **`/create_index`** (engine: `create-index`)
+3. **`/create_graph`** (engine: `create-graph`)
+4. **`/analyze-mr`**
+5. **`/update-issue`**
 
-These four slash-invocable skills define the user-facing product surface.
+These five slash-invocable skills define the **shipped** user-facing product surface ([engine-contract.md](engine-contract.md)).
 
-They must remain thin operation-specific wrappers over one shared physical engine. Business logic, indexing, graph storage, adapters, schemas, templates, and report generation must not be duplicated across the four skills.
+Legacy: CLI `index-repository` (deprecated) runs `create-index` then `create-graph`; there is no separate `/index-repository` skill.
 
-All supporting logic — requirement extraction, repository parsing, dependency analysis, test discovery, conformance checks, evidence generation, and report generation — exists only to support one or more of these four functions.
+They must remain thin operation-specific wrappers over one shared physical engine. Business logic, indexing, graph storage, adapters, schemas, templates, and report generation must not be duplicated across the skills.
+
+All supporting logic — requirement extraction, repository parsing, dependency analysis, test discovery, conformance checks, evidence generation, and report generation — exists only to support one or more of these functions.
 
 The Skill must determine:
 
@@ -1251,12 +1254,12 @@ When GitLab write is enabled, the local artifact remains available as the audit 
 
 # 6. Primary Workflow
 
-The four functions form the core workflow:
+The core workflow:
 
 ```text
 Analyze Issue
       ↓
-Index Repository
+Create index (and optionally create graph)
       ↓
 Analyze MR
       ↓
@@ -1269,7 +1272,7 @@ Examples:
 
 ```text
 Analyze Issue only
-Index Repository only
+Create index / create graph only
 Analyze MR using an existing index
 Generate Issue update without applying it
 ```
@@ -1278,11 +1281,12 @@ Generate Issue update without applying it
 
 # 7. User-Facing Skill Surface
 
-The product must expose four separate project skills:
+The product must expose five separate project skills:
 
 ```text
 /analyze-issue
-/index-repository
+/create_index
+/create_graph
 /analyze-mr
 /update-issue
 ```
@@ -1296,7 +1300,7 @@ Conceptual architecture:
 ```text
 /analyze-issue
       │
-/index-repository
+/create_index ──→ /create_graph (optional export)
       │
 /analyze-mr
       ├──────────────→ shared mr-impact engine
@@ -1315,13 +1319,11 @@ Recommended repository structure:
 .github/
 └── skills/
     ├── analyze-issue/
-    │   └── SKILL.md
-    ├── index-repository/
-    │   └── SKILL.md
+    ├── create-index/
+    ├── create-graph/
     ├── analyze-mr/
-    │   └── SKILL.md
     └── update-issue/
-        └── SKILL.md
+        └── SKILL.md (each folder contains SKILL.md, workflow, steps)
 
 skills/
 └── _engine/
@@ -1340,22 +1342,24 @@ skills/
 The exact internal package layout may change, but the architectural rule is mandatory:
 
 ```text
-four user-facing skills
+five user-facing skills
 +
 one shared implementation engine
 ```
 
-The four `SKILL.md` files should contain only operation-specific routing/instructions needed for Copilot to invoke the correct engine workflow.
+The five `SKILL.md` files should contain only operation-specific routing/instructions needed for Copilot to invoke the correct engine workflow.
 
 They must not contain duplicated implementations.
 
 The shared CLI should expose equivalent deterministic operations such as:
 
 ```bash
+mr-impact create-index ...
+mr-impact create-graph ...
 mr-impact analyze-issue ...
-mr-impact index-repository ...
 mr-impact analyze-mr ...
 mr-impact update-issue ...
+# legacy: mr-impact index-repository ...
 ```
 
 The slash-skill surface is the preferred interactive VS Code interface.
@@ -1558,22 +1562,24 @@ The Skill is production-worthy only when it consistently provides:
 
 ## 15.1 Using the Skill Suite in VS Code Copilot
 
-Store four project skills:
+Store five project skills (see [engine-contract.md](engine-contract.md)):
 
 ```text
 .github/skills/analyze-issue/SKILL.md
-.github/skills/index-repository/SKILL.md
+.github/skills/create-index/SKILL.md
+.github/skills/create-graph/SKILL.md
 .github/skills/analyze-mr/SKILL.md
 .github/skills/update-issue/SKILL.md
 ```
 
-All four skills call the same shared implementation engine.
+All five skills call the same shared implementation engine.
 
 Preferred VS Code Copilot Agent Mode usage:
 
 ```text
 /analyze-issue
-/index-repository
+/create_index
+/create_graph
 /analyze-mr
 /update-issue
 ```
@@ -1584,7 +1590,7 @@ Users should not need to remember a parent skill name or write:
 /mr-impact-analysis analyze-mr
 ```
 
-The four operation names are the user-facing interface.
+The five slash commands above are the user-facing interface.
 
 ---
 
@@ -1625,45 +1631,48 @@ Do not use unrelated source material outside the specified folder.
 ```text
 00-issue-analysis.md
 01-generated-issue.md
+issue-intent.json
 ```
 
 ---
 
-## 15.3 Index Repository
+## 15.3 Index and graph (shipped skills)
 
-### Deep Index for the Current MR Repository
-
-```text
-/index-repository
-
-Build or incrementally refresh the deep repository index for the current repository.
-
-Reuse unchanged indexed content.
-Build/update the structural and operational dependency graph.
-Generate/update the repository boundary index.
-```
-
-Equivalent explicit mode:
+### Deep index (`/create_index`)
 
 ```text
-/index-repository --deep
+/create_index
+
+Build or incrementally refresh the DEEP structural index for the current repository
+into .repository-analysis/index/ only.
+
+Reuse unchanged indexed content (content-hash skip).
 ```
 
-### Boundary Index
+Engine: `python -m mr_impact create-index`
 
-For organization-scale indexing:
+### Graph export (`/create_graph`)
 
 ```text
-/index-repository --boundary
+/create_graph
 
-Build or refresh only the boundary index needed for cross-repository dependency discovery.
+Export dependency-graph.json from existing index SQLite into .repository-analysis/graph/.
+Requires create-index first.
 ```
 
-The underlying engine should keep the same storage architecture described in:
+Engine: `python -m mr_impact create-graph`
+
+### Legacy CLI
 
 ```text
-MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md
+python -m mr_impact index-repository
 ```
+
+Runs `create-index` then `create-graph` in one process (deprecated for skills; prefer the two skills above).
+
+### Boundary catalog (V1)
+
+Cross-repository hints use optional `.repository-analysis/catalog/boundary-catalog.json` (curated file). Org-wide automatic boundary indexing remains post-V1; see [V1_SCOPE.md](V1_SCOPE.md).
 
 ---
 
@@ -1741,6 +1750,7 @@ Required output:
 
 ```text
 05-issue-update.md
+issue-update.json
 ```
 
 Remote GitLab writes remain opt-in.
@@ -1749,12 +1759,14 @@ Remote GitLab writes remain opt-in.
 
 ## 15.6 Full Workflow
 
-The normal complete workflow is the sequential use of the four skills:
+The normal complete workflow is the sequential use of the five skills:
 
 ```text
 /analyze-issue
       ↓
-/index-repository
+/create_index
+      ↓
+/create_graph (recommended for graph JSON)
       ↓
 /analyze-mr
       ↓
@@ -1767,12 +1779,14 @@ Example:
 1. /analyze-issue
    Use ./requirements/issue-input/.
 
-2. /index-repository --deep
+2. /create_index
 
-3. /analyze-mr
+3. /create_graph
+
+4. /analyze-mr
    Analyze origin/main..HEAD.
 
-4. /update-issue
+5. /update-issue
    Preview only.
 ```
 
@@ -1790,9 +1804,9 @@ Each wrapper must have one responsibility.
 
 Its `SKILL.md` should describe only Issue analysis/generation behavior and route to the shared `analyze-issue` engine operation.
 
-### `/index-repository`
+### `/create_index` and `/create_graph`
 
-Its `SKILL.md` should describe repository indexing behavior and route to the shared `index-repository` engine operation.
+Their `SKILL.md` files should describe indexing and graph export and route to `create-index` and `create-graph` respectively.
 
 ### `/analyze-mr`
 
@@ -1810,7 +1824,7 @@ Shared logic belongs in the common engine.
 
 ## 15.8 Shared Engine Contract
 
-The four skills must invoke a single reusable implementation layer.
+The five skills must invoke a single reusable implementation layer (see [engine-contract.md](engine-contract.md)).
 
 Conceptually:
 
@@ -1824,7 +1838,7 @@ shared services
 index/graph/adapters/templates/reports
 ```
 
-A bug fix to graph traversal, parsing, evidence generation, or reporting must be implemented once and automatically benefit all four user-facing skills.
+A bug fix to graph traversal, parsing, evidence generation, or reporting must be implemented once and automatically benefit all five user-facing skills.
 
 Tests should primarily target the shared engine and then add thin integration tests verifying each `SKILL.md` routes to the correct operation.
 

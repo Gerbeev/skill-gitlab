@@ -1,6 +1,6 @@
 # MR Impact engine (`skills/_engine`)
 
-Shared Python package for **DEEP indexing** and (later) MR/issue analysis. Copilot skills invoke it via `_mr-impact/scripts/run_engine.py`.
+Shared Python package for **DEEP indexing**, Issue prep, MR impact, and Issue update preview. Copilot skills invoke it via `_mr-impact/scripts/run_engine.py`. Canonical CLI and artifacts: [docs/reference/engine-contract.md](../../docs/reference/engine-contract.md).
 
 ## Install (optional)
 
@@ -19,6 +19,14 @@ python -m mr_impact create-graph    # .repository-analysis/graph/ from sqlite
 ```
 
 Legacy: `index-repository --mode deep` runs both in one process.
+
+### Issue and MR commands
+
+```bash
+python -m mr_impact analyze-issue --input-dir ./in --template ./GITLAB_ISSUE_TEMPLATE.md --run-dir .repository-analysis/run
+python -m mr_impact analyze-mr --revision HEAD~1..HEAD --run-dir .repository-analysis/run
+python -m mr_impact update-issue --run-dir .repository-analysis/run
+```
 
 Writes:
 

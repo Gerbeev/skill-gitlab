@@ -59,6 +59,12 @@ class DeepIndexTests(unittest.TestCase):
             graph = json.loads((analysis / "graph" / "dependency-graph.json").read_text(encoding="utf-8"))
             targets = {e["target"] for e in graph["edges"]}
             self.assertTrue(any("payment_recon" in t for t in targets))
+            edge_types = {(e["type"], e["target"]) for e in graph["edges"]}
+            self.assertIn(("condition_dependency", "FUNDING_CUTOFF_EOD"), edge_types)
+            self.assertIn(("condition_dependency", "LEDGER_CLOSE_EOD"), edge_types)
+            self.assertIn(("sql_call", "ledger_pkg.post_entry"), edge_types)
+            self.assertIn(("package_reference", "Acme.Ledger.Client"), edge_types)
+            self.assertIn(("csharp_using", "Acme.Ledger.Client"), edge_types)
 
 
 def os_environ():

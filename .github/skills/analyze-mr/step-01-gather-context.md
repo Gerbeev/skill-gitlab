@@ -8,7 +8,7 @@ issue_dir: ''
 ## RULES
 
 - Deterministic diff parsing is owned by the engine; do not replace it with narrative guessing.
-- Clean `{project-root}/.repository-analysis/run/` before starting unless the user asked to keep prior artifacts.
+- Before MR analysis, clean **MR/update** artifacts under `run/` per `references/run-cleanup.md`. Keep Issue files (`00-*`, `01-generated-issue.md`, `issue-intent.json`) when using them as `--issue-dir` context.
 - Read `references/analysis-inputs.md` and use **only artifacts that exist** under `.repository-analysis/index/` and/or `graph/`.
 
 ## INSTRUCTIONS

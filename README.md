@@ -10,7 +10,7 @@ Five VS Code **GitHub Copilot** project skills for Issue analysis, index/graph b
 | `/analyze-mr` | MR change impact, runtime/QA scope |
 | `/update-issue` | Issue update preview (GitLab apply opt-in) |
 
-**More detail:** [docs/README.md](docs/README.md) (extended prompts and outputs) · [GLOSSARY](docs/reference/GLOSSARY.md) · [TASK_STATEMENT](docs/reference/TASK_STATEMENT.md) · [V1 scope](docs/reference/V1_SCOPE.md)
+**More detail:** [docs/README.md](docs/README.md) (extended prompts and outputs) · [Engine contract](docs/reference/engine-contract.md) (CLI + artifacts) · [GLOSSARY](docs/reference/GLOSSARY.md) · [TASK_STATEMENT](docs/reference/TASK_STATEMENT.md) · [V1 scope](docs/reference/V1_SCOPE.md) · [Development plan](docs/DEVELOPMENT_PLAN.md)
 
 ---
 
@@ -97,7 +97,7 @@ Each slash command:
 
 1. Agent runs **`_mr-impact/scripts/render_skill.py`** for that skill.
 2. Agent follows the printed **`workflow.md`** snapshot (step files in order).
-3. Steps call **`run_engine.py`** → `python -m mr_impact …` when the engine is installed under `skills/_engine/`.
+3. Steps call **`run_engine.py`** → `python -m mr_impact …` using the engine bundled under **`_mr-impact/engine/`** after setup (or `skills/_engine/` in development).
 
 If `render_skill` is missing, run **setup** again.
 
@@ -150,6 +150,7 @@ Clean up .repository-analysis/run/ after I confirm.
 | --- | --- |
 | `00-issue-analysis.md` | Gaps, assumptions, ambiguities, optional anchored dependency paths if index exists |
 | `01-generated-issue.md` | Paste-ready Issue body |
+| `issue-intent.json` | Structured gaps, anchors, and bounded graph paths |
 
 Optional: fetch Issue from GitLab via MCP or `GITLAB_TOKEN` into `run/gitlab-input/` (see [docs/README.md](docs/README.md#example-2--analyze-issue-gitlab-issue--mcp)).
 
@@ -196,7 +197,13 @@ Optional Issue context: 01-generated-issue.md in .repository-analysis/run/ if pr
 Focus on runtime jobs and QA scope (AutoSys/JIL where indexed).
 ```
 
-**You get (in `run/`):** `01-mr-analysis.md` … `04-test-plan.md`, plus JSON (`runtime-impact.json`, etc.).
+**You get (in `run/`):** engine-produced artifacts per [engine-contract](docs/reference/engine-contract.md):
+
+| Markdown | JSON |
+| --- | --- |
+| `01-mr-analysis.md` … `04-test-plan.md` | `mr-context.json`, `changed-symbols.json`, `impact-graph.json`, `runtime-impact.json`, `test-impact.json` |
+
+Requires an existing index (`/create_index` first). Revision format: `base..head` (e.g. `origin/main..HEAD`).
 
 Graph rules: bounded paths from **changed symbols**, not “all jobs in module” ([issue-anchored-graph-traversal](docs/reference/issue-anchored-graph-traversal.md)).
 
@@ -215,7 +222,7 @@ Use artifacts in .repository-analysis/run/
 Generate 05-issue-update.md preview only. Do not write to GitLab unless I say "apply".
 ```
 
-**You get:** `05-issue-update.md` (and optional `issue-update.json`).
+**You get:** `05-issue-update.md` and `issue-update.json` (engine preview; GitLab apply stays in the skill).
 
 To apply remotely: confirm explicitly; use GitLab MCP or token ([gitlab-integration](docs/reference/gitlab-integration.md)).
 
@@ -239,13 +246,22 @@ More examples (GitLab MR, boundary catalog): **[docs/README.md](docs/README.md)*
 
 ## Engine note
 
-The Python engine lives in **`skills/_engine/`** (`mr_impact` package). Skill workflows call it via **`_mr-impact/scripts/run_engine.py`**. Until the full engine is present in your checkout, steps that invoke `mr-impact` will fail—see [skills/_engine/README.md](skills/_engine/README.md).
+Source of truth: **`skills/_engine/`** (`mr_impact`). **Setup** copies it to **`_mr-impact/engine/`**; skills invoke **`_mr-impact/scripts/run_engine.py`**. Canonical commands and run files: [engine-contract](docs/reference/engine-contract.md).
 
-Install engine when the full package is in your checkout:
+Direct CLI (from repo root, after setup or with `PYTHONPATH`):
+
+```bash
+python _mr-impact/scripts/run_engine.py --project-root . -- create-index
+python _mr-impact/scripts/run_engine.py --project-root . -- analyze-mr --revision HEAD~1..HEAD --run-dir .repository-analysis/run
+```
+
+Optional editable install for development:
 
 ```bash
 python -m pip install -e skills/_engine
 ```
+
+See [skills/_engine/README.md](skills/_engine/README.md).
 
 Optional tree-sitter grammars: `skills/_engine/src/mr_impact/readers/requirements.txt`.  
 **Without uv:** [docs/reference/python-setup.md](docs/reference/python-setup.md).
@@ -262,7 +278,7 @@ python tools/validate_skills.py --strict
 
 | Problem | Action |
 | --- | --- |
-| Slash commands missing | Run setup; confirm `.github/skills/` has four folders; reload VS Code. |
+| Slash commands missing | Run setup; confirm `.github/skills/` has **five** folders; reload VS Code. |
 | `render_skill.py` not found | Run setup from project root. |
 | Stale skill text in Copilot | Edit under `skills/`, re-run setup, reload window. |
 | MR analysis empty / no jobs | Run `/create_index` (and `/create_graph` if needed); check JIL/scripts indexed. |

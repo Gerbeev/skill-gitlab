@@ -111,6 +111,13 @@ class IndexStore:
             ],
         )
 
+    def remove_file(self, path: str) -> bool:
+        row = self._conn.execute("SELECT 1 FROM files WHERE path = ?", (path,)).fetchone()
+        if not row:
+            return False
+        self._conn.execute("DELETE FROM files WHERE path = ?", (path,))
+        return True
+
     def remove_paths_not_in(self, keep: set[str]) -> int:
         rows = self._conn.execute("SELECT path FROM files").fetchall()
         removed = 0
@@ -158,6 +165,29 @@ class IndexStore:
                 "evidence": r[4],
                 "line_start": r[5],
                 "line_end": r[6],
+            }
+            for r in rows
+        ]
+
+    def symbols_for_paths(self, paths: set[str]) -> list[dict]:
+        if not paths:
+            return []
+        placeholders = ",".join("?" for _ in paths)
+        rows = self._conn.execute(
+            f"""
+            SELECT path, name, kind, line_start, line_end
+            FROM symbols WHERE path IN ({placeholders})
+            ORDER BY path, line_start
+            """,
+            sorted(paths),
+        ).fetchall()
+        return [
+            {
+                "path": r[0],
+                "name": r[1],
+                "kind": r[2],
+                "line_start": r[3],
+                "line_end": r[4],
             }
             for r in rows
         ]
