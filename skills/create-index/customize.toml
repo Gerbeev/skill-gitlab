@@ -1,0 +1,13 @@
+# Override in _mr-impact/custom/create-index.toml
+
+[workflow]
+
+activation_steps_prepend = []
+activation_steps_append = []
+
+persistent_facts = [
+  "Adapter priority V1: C#, Oracle SQL/PL/SQL, JIL, then Scala/Java, then generic/Python.",
+  "This skill writes only .repository-analysis/index/ — not graph/. Run create-graph separately.",
+]
+
+on_complete = ""

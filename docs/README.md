@@ -5,12 +5,14 @@
 | Document | Purpose |
 | --- | --- |
 | [reference/GLOSSARY.md](reference/GLOSSARY.md) | **Glossary** — MR Impact, render_skill, engine, artifacts, indexing terms |
+| [reference/analysis-inputs.md](reference/analysis-inputs.md) | Which index/graph files downstream skills read |
 | [reference/issue-anchored-graph-traversal.md](reference/issue-anchored-graph-traversal.md) | How Issue analysis searches the graph (anchors, AutoSys paths, no module-wide job explosion) |
 | [GITLAB_ISSUE_TEMPLATE.md](GITLAB_ISSUE_TEMPLATE.md) | Mirror of the Issue template (canonical: `.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md`) |
 | [reference/TASK_STATEMENT.md](reference/TASK_STATEMENT.md) | Full product specification (four skills, shared engine) |
 | [reference/V1_SCOPE.md](reference/V1_SCOPE.md) | **MVP delivery boundary** |
 | [reference/MVP_TASK_IMPROVEMENTS.md](reference/MVP_TASK_IMPROVEMENTS.md) | Design rationale and `examples/` patterns |
 | [reference/python-setup.md](reference/python-setup.md) | Python 3.11+ without `uv` |
+| `tools/validate_skills.py` | Deterministic checks for the four Copilot skills |
 | [reference/gitlab-integration.md](reference/gitlab-integration.md) | GitLab token + MCP (read / opt-in write) |
 | [reference/boundary-catalog.example.json](reference/boundary-catalog.example.json) | Optional cross-repo boundary catalog seed |
 
@@ -27,7 +29,8 @@ Reference examples (not shipped as product code):
 
 ```text
 skills/analyze-issue/       # workflow.md + step-*.md + GITLAB_ISSUE_TEMPLATE.md
-skills/index-repository/
+skills/create-index/
+skills/create-graph/
 skills/analyze-mr/          # step pattern from examples/BMAD-METHOD/bmad-code-review
 skills/update-issue/
 skills/mr-impact-method/    # module + shared scripts (not a slash command)
@@ -47,7 +50,7 @@ No `uv` required: [reference/python-setup.md](reference/python-setup.md).
 
 Each slash command: `render_skill.py` → follow rendered `workflow.md` (BMAD `bmad-build` / `bmad-code-review` pattern).
 
-Copilot: `/analyze-issue`, `/index-repository`, `/analyze-mr`, `/update-issue`.
+Copilot: `/analyze-issue`, `/create_index`, `/create_graph`, `/analyze-mr`, `/update-issue`.
 
 ### Ephemeral run output
 
@@ -129,28 +132,27 @@ Generate 00-issue-analysis.md and 01-generated-issue.md in the run folder.
 
 ---
 
-## Example 3 — Index repository
-
-**Copilot prompt:**
+## Example 3 — Create index
 
 ```text
-/index-repository
+/create_index
 
-Deep-index the current repository. Refresh only what changed since last index.
+Deep-index into .repository-analysis/index/ only. Incremental refresh when hashes unchanged.
 ```
 
-**Expected output (persistent, not in run/):**
+**Output:** `index/repository-index.sqlite`, `repository-index.json`, `index-manifest.json`.
+
+## Example 3b — Create graph
 
 ```text
-.repository-analysis/
-├── index/
-│   ├── repository-index.sqlite
-│   ├── repository-index.json
-│   └── index-manifest.json
-└── graph/
-    ├── dependency-graph.json
-    └── graph-manifest.json
+/create_graph
+
+Export graph JSON from existing index SQLite.
 ```
+
+**Output:** `graph/dependency-graph.json`, `graph-manifest.json` (requires Example 3).
+
+See [reference/analysis-inputs.md](reference/analysis-inputs.md) for how downstream skills consume index vs graph.
 
 **V1 adapter priority:** C# → Oracle SQL/PL/SQL → JIL → then Scala, Java, others.
 
@@ -158,7 +160,7 @@ Deep-index the current repository. Refresh only what changed since last index.
 
 ## Example 4 — Analyze MR
 
-**Prerequisite:** index exists (Example 3).
+**Prerequisite:** at least `index/` (Example 3); `graph/` optional (Example 3b). Agent reads what exists.
 
 **Copilot prompt:**
 
@@ -217,9 +219,10 @@ Generate 05-issue-update.md preview only. Do not write to GitLab.
 
 ```text
 1. /analyze-issue  → input ./requirements/my-feature/
-2. /index-repository
-3. /analyze-mr       → origin/main..HEAD
-4. /update-issue     → preview only
+2. /create_index
+3. /create_graph    → optional
+4. /analyze-mr       → origin/main..HEAD
+5. /update-issue     → preview only
 
 After review, delete .repository-analysis/run/
 ```

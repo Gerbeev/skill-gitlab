@@ -6,17 +6,30 @@
 
 ## Conventions
 
-- Cross-file references in this workflow are absolute snapshot paths printed by `render_skill.py`.
-- `{project-root}` contains `_mr-impact/` after setup.
-- `{skill-root}` is the rendered skill snapshot directory (contains `GITLAB_ISSUE_TEMPLATE.md`).
+- Cross-file references in this workflow are **absolute snapshot paths** from `render_skill.py`.
+- `{project-root}` is the repository root (`_mr-impact/` lives here after setup).
+- `{skill-root}` is the rendered snapshot directory (contains `GITLAB_ISSUE_TEMPLATE.md`).
+- Ephemeral engine output: `{project-root}/.repository-analysis/run/`.
 
 ## On Activation
 
+### Step 1: Prepend
+
+Execute in order (`_None._` or an empty list means skip):
+
 {{ workflow.activation_steps_prepend }}
 
-Load persistent facts:
+### Step 2: Persistent facts
+
+Treat every entry below as foundational context. Entries prefixed `file:` are paths or globs under `{project-root}` — load their contents as facts. Other entries are literal facts:
 
 {{ workflow.persistent_facts }}
+
+### Step 3: Workflow discipline
+
+Read fully and follow: `{{ rendered("references/workflow-discipline.md") }}`
+
+### Step 4: Append
 
 {{ workflow.activation_steps_append }}
 

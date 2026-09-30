@@ -1,0 +1,12 @@
+# Override in _mr-impact/custom/create-graph.toml
+
+[workflow]
+
+activation_steps_prepend = []
+activation_steps_append = []
+
+persistent_facts = [
+  "Requires index/repository-index.sqlite from create-index. This skill writes only .repository-analysis/graph/.",
+]
+
+on_complete = ""

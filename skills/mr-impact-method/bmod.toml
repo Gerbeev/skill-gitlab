@@ -4,7 +4,8 @@ version = "0.1.0"
 update_source = "file:skills"
 skills = [
   "analyze-issue",
-  "index-repository",
+  "create-index",
+  "create-graph",
   "analyze-mr",
   "update-issue",
 ]

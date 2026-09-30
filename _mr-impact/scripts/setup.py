@@ -2,7 +2,7 @@
 # /// script
 # requires-python = ">=3.11"
 # ///
-"""Install _mr-impact runtime and sync the four Copilot skills to .github/skills/."""
+"""Install _mr-impact runtime and sync Copilot skills to .github/skills/."""
 
 from __future__ import annotations
 
@@ -17,7 +17,8 @@ sys.dont_write_bytecode = True
 
 COPILOT_SKILLS = (
     "analyze-issue",
-    "index-repository",
+    "create-index",
+    "create-graph",
     "analyze-mr",
     "update-issue",
 )
@@ -28,6 +29,11 @@ SCRIPT_NAMES = (
     "run_engine.py",
     "setup.py",
     "setup_check.py",
+)
+SHARED_REFERENCES = (
+    "references/workflow-discipline.md",
+    "references/validate-present.md",
+    "references/analysis-inputs.md",
 )
 
 
@@ -46,6 +52,34 @@ def write_config(project_root: Path, template: Path) -> Path:
     return dest
 
 
+ENGINE_IGNORE = shutil.ignore_patterns(
+    ".venv",
+    "venv",
+    "__pycache__",
+    "*.pyc",
+    ".pytest_cache",
+    "*.egg-info",
+)
+
+
+def resolve_engine_source(project_root: Path, method_dir: Path) -> Path | None:
+    for candidate in (project_root / "skills" / "_engine", method_dir.parent / "_engine"):
+        if (candidate / "src" / "mr_impact").is_dir():
+            return candidate
+    return None
+
+
+def copy_engine(project_root: Path, method_dir: Path) -> str | None:
+    source = resolve_engine_source(project_root, method_dir)
+    if source is None:
+        return None
+    dest = project_root / "_mr-impact" / "engine"
+    if dest.exists():
+        shutil.rmtree(dest)
+    shutil.copytree(source, dest, ignore=ENGINE_IGNORE)
+    return str(dest)
+
+
 def copy_scripts(method_dir: Path, project_root: Path) -> list[str]:
     src = method_dir / "scripts"
     dest = project_root / "_mr-impact" / "scripts"
@@ -57,6 +91,17 @@ def copy_scripts(method_dir: Path, project_root: Path) -> list[str]:
             shutil.copy2(source, dest / name)
             copied.append(name)
     return copied
+
+
+def install_shared_references(method_dir: Path, skills_dir: Path, skill_names: list[str]) -> None:
+    for skill_name in skill_names:
+        for rel in SHARED_REFERENCES:
+            source = method_dir / rel
+            if not source.is_file():
+                continue
+            dest = skills_dir / skill_name / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, dest)
 
 
 def sync_skill(skill_name: str, skills_dir: Path, github_skills: Path) -> str:
@@ -115,6 +160,7 @@ def main() -> int:
             "project_root": str(project_root),
             "runtime_exists": runtime.is_dir(),
             "config_exists": (runtime / "config.toml").is_file(),
+            "engine_bundled": (runtime / "engine" / "src" / "mr_impact").is_dir(),
             "github_skills": installed,
             "expected_skills": sorted(allowed),
             "extra_github_skills": sorted(set(installed) - allowed),
@@ -127,10 +173,13 @@ def main() -> int:
         return 1
 
     write_config(project_root, template)
+    engine_dest = copy_engine(project_root, method_dir)
     copied = copy_scripts(method_dir, project_root)
+    skill_list = sorted(allowed)
+    install_shared_references(method_dir, skills_dir, skill_list)
     github_skills.mkdir(parents=True, exist_ok=True)
     removed = prune_github_skills(github_skills, allowed)
-    actions = [sync_skill(name, skills_dir, github_skills) for name in sorted(allowed)]
+    actions = [sync_skill(name, skills_dir, github_skills) for name in skill_list]
     (runtime / "custom").mkdir(parents=True, exist_ok=True)
     (project_root / ".repository-analysis" / "catalog").mkdir(parents=True, exist_ok=True)
     example = project_root / "docs" / "reference" / "boundary-catalog.example.json"
@@ -143,6 +192,7 @@ def main() -> int:
             {
                 "status": "ok",
                 "config": str(runtime / "config.toml"),
+                "engine_bundled": engine_dest,
                 "scripts_copied": copied,
                 "sync": actions,
                 "removed_from_github_skills": removed,

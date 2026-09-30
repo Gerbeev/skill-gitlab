@@ -1,4 +1,5 @@
-# Customization for analyze-issue. Override in _mr-impact/custom/analyze-issue.toml
+# DO NOT EDIT shipped defaults in place — override in _mr-impact/custom/analyze-issue.toml
+# Merge rules: strings override; arrays (e.g. persistent_facts) append.
 
 [workflow]
 
@@ -8,6 +9,8 @@ activation_steps_append = []
 
 persistent_facts = [
   "file:{project-root}/docs/reference/gitlab-integration.md",
+  "file:{project-root}/docs/reference/issue-anchored-graph-traversal.md",
+  "Use references/analysis-inputs.md: optional index/ and graph/ — never require both.",
 ]
 
 on_complete = """

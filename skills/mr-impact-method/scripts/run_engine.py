@@ -18,15 +18,21 @@ except ImportError:
 
 
 def engine_root(project_root: Path) -> Path:
+    bundled = project_root / "_mr-impact" / "engine"
+    dev = project_root / "skills" / "_engine"
     if load_central_config is not None:
         try:
             cfg = load_central_config(project_root)
             raw = cfg.get("core", {}).get("engine_project")
             if isinstance(raw, str) and raw.strip():
-                return Path(raw.replace("{project-root}", project_root.as_posix()))
+                candidate = Path(raw.replace("{project-root}", project_root.as_posix()))
+                if (candidate / "src" / "mr_impact").is_dir():
+                    return candidate
         except ConfigError:
             pass
-    return project_root / "skills" / "_engine"
+    if (bundled / "src" / "mr_impact").is_dir():
+        return bundled
+    return dev
 
 
 def main() -> int:
@@ -40,10 +46,17 @@ def main() -> int:
         forwarded = forwarded[1:]
     engine = engine_root(project_root)
     src = engine / "src"
+    if not (src / "mr_impact").is_dir():
+        sys.stderr.write(
+            "error: mr_impact engine not found. Expected one of:\n"
+            f"  {project_root / '_mr-impact' / 'engine'}\n"
+            f"  {project_root / 'skills' / '_engine'}\n"
+            "Re-run: python skills/mr-impact-method/scripts/setup.py --project-root <repo>\n"
+        )
+        return 1
     env = os.environ.copy()
-    if src.is_dir():
-        prev = env.get("PYTHONPATH", "")
-        env["PYTHONPATH"] = os.pathsep.join([str(src), prev]) if prev else str(src)
+    prev = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = os.pathsep.join([str(src), prev]) if prev else str(src)
     cmd = [sys.executable, "-m", "mr_impact", *forwarded]
     completed = subprocess.run(cmd, cwd=str(project_root), env=env)
     return int(completed.returncode)

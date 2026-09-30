@@ -10,6 +10,7 @@
 1. Resolve `--input-dir` from the user prompt (default: `{project-root}`).
 2. Optional GitLab Issue: prefer GitLab MCP; else `GITLAB_TOKEN` / export into `{project-root}/.repository-analysis/run/gitlab-input/`.
 3. Confirm template path: `{skill-root}/GITLAB_ISSUE_TEMPLATE.md`.
+4. If anchored graph context is needed: follow `references/analysis-inputs.md` — use index and/or graph only if those folders exist.
 
 ### CHECKPOINT
 

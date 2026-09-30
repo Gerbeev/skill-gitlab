@@ -1,0 +1,5 @@
+CREATE OR REPLACE PACKAGE BODY payment_pkg AS
+  PROCEDURE run IS
+    SELECT 1 FROM dual;
+  END;
+END;

@@ -5,7 +5,8 @@
 | Skill | Directory |
 | --- | --- |
 | `/analyze-issue` | `analyze-issue/` |
-| `/index-repository` | `index-repository/` |
+| `/create_index` | `create-index/` |
+| `/create_graph` | `create-graph/` |
 | `/analyze-mr` | `analyze-mr/` |
 | `/update-issue` | `update-issue/` |
 

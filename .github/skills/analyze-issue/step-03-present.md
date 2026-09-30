@@ -2,6 +2,8 @@
 
 ## INSTRUCTIONS
 
+Follow `references/validate-present.md` before closing the run.
+
 1. Summarize key findings from `00-issue-analysis.md` (gaps, ambiguities, assumptions).
 2. Offer to open `01-generated-issue.md` for GitLab paste.
 3. Remind: generated Issue must match template sections only.

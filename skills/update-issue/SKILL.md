@@ -1,6 +1,6 @@
 ---
 name: update-issue
-description: 'Prepare 05-issue-update.md after MR analysis. Optional GitLab apply via token or MCP after explicit user confirmation.'
+description: 'Prepare 05-issue-update.md after MR analysis. Use when syncing Issue text with analysis results; GitLab apply only via token or MCP after explicit user confirmation.'
 ---
 
 ```bash

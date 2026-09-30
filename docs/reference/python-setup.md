@@ -8,7 +8,13 @@
 # Hub scripts (render_skill needs Jinja2)
 python -m pip install -r skills/mr-impact-method/scripts/requirements.txt
 
-# Engine (when the full mr_impact package is present)
+# Engine: bundled by setup into _mr-impact/engine/ (no separate install required)
+python skills/mr-impact-method/scripts/setup.py --project-root .
+```
+
+Optional dev install from monorepo:
+
+```bash
 python -m pip install -e skills/_engine
 ```
 
@@ -20,7 +26,8 @@ Optional tree-sitter grammars (indexing): see `skills/_engine/src/mr_impact/read
 | --- | --- |
 | `uv run --no-cache skills/mr-impact-method/scripts/setup.py --project-root .` | `python skills/mr-impact-method/scripts/setup.py --project-root .` |
 | `uv run --no-cache _mr-impact/scripts/render_skill.py --project-root . --skill skills/analyze-issue` | `python _mr-impact/scripts/render_skill.py --project-root . --skill skills/analyze-issue` |
-| `uv run --project skills/_engine python -m mr_impact index-repository` | `python _mr-impact/scripts/run_engine.py --project-root . -- index-repository --mode deep` |
+| `uv run --project skills/_engine python -m mr_impact create-index` | `python _mr-impact/scripts/run_engine.py --project-root . -- create-index` |
+| (graph export) | `python _mr-impact/scripts/run_engine.py --project-root . -- create-graph` |
 
 On Windows, if `python` is not on PATH, use `py -3.11` in place of `python`.
 

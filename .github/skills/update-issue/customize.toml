@@ -1,3 +1,5 @@
+# Override in _mr-impact/custom/update-issue.toml
+
 [workflow]
 
 activation_steps_prepend = []

@@ -1,6 +1,6 @@
 ---
 name: analyze-mr
-description: 'Analyze a Merge Request: deterministic diff, impact graph, runtime/job QA scope. Uses repository index. Adapted from BMAD code-review workflow shape.'
+description: 'Analyze a Merge Request with deterministic diff, impact graph, and runtime/job QA scope. Use when reviewing an MR or branch and the repository index is available or should be built first.'
 ---
 
 Run the following command exactly once:

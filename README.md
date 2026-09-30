@@ -1,11 +1,12 @@
 # MR Impact Copilot Skills
 
-Four VS Code **GitHub Copilot** project skills for Issue analysis, repository indexing, Merge Request impact, and Issue updates—one shared engine, BMAD-style workflows.
+Five VS Code **GitHub Copilot** project skills for Issue analysis, index/graph build, Merge Request impact, and Issue updates—one shared engine, BMAD-style workflows.
 
 | Slash command | Purpose |
 | --- | --- |
 | `/analyze-issue` | Analysis report + GitLab Issue body from template |
-| `/index-repository` | Deep structural index and dependency graph |
+| `/create_index` | DEEP structural index → `.repository-analysis/index/` |
+| `/create_graph` | Dependency graph JSON → `.repository-analysis/graph/` (after index) |
 | `/analyze-mr` | MR change impact, runtime/QA scope |
 | `/update-issue` | Issue update preview (GitLab apply opt-in) |
 
@@ -46,9 +47,10 @@ After setup, Copilot only needs:
 ```text
 <your-project-root>/
 ├── .github/
-│   └── skills/                    ← Copilot project skills (4 folders)
+│   └── skills/                    ← Copilot project skills (5 folders)
 │       ├── analyze-issue/
-│       ├── index-repository/
+│       ├── create-index/
+│       ├── create-graph/
 │       ├── analyze-mr/
 │       └── update-issue/
 ├── _mr-impact/                    ← runtime (config + render_skill; gitignore render/)
@@ -70,8 +72,8 @@ On Windows, if `python` is missing, use `py -3.11` instead of `python`.
 
 Setup will:
 
-- Create **`_mr-impact/config.toml`** and install scripts under **`_mr-impact/scripts/`** (`render_skill.py`, `run_engine.py`, …).
-- **Sync** `skills/analyze-issue`, `index-repository`, `analyze-mr`, `update-issue` → **`.github/skills/`** (only these four).
+- Create **`_mr-impact/config.toml`**, bundle **`_mr-impact/engine/`** (Python `mr_impact` package), and install scripts under **`_mr-impact/scripts/`**.
+- **Sync** the five Copilot skills → **`.github/skills/`** (see `mr-impact-method/bmod.toml`).
 - Optionally seed **`.repository-analysis/catalog/boundary-catalog.json`** from the example file.
 
 Check status:
@@ -85,7 +87,7 @@ Re-run setup after you change files under `skills/` so `.github/skills/` stays i
 ### Verify Copilot sees the skills
 
 1. Reload VS Code window if skills were just added.
-2. Open Copilot Chat → type `/` and confirm: `analyze-issue`, `index-repository`, `analyze-mr`, `update-issue`.
+2. Open Copilot Chat → type `/` and confirm: `analyze-issue`, `create-index`, `create-graph`, `analyze-mr`, `update-issue`.
 
 ---
 
@@ -106,7 +108,8 @@ If `render_skill` is missing, run **setup** again.
 | Location | Purpose |
 | --- | --- |
 | `.repository-analysis/run/` | **Per-run** artifacts (Issue/MR/update). **Gitignored.** Delete before/after runs unless you want to keep them. |
-| `.repository-analysis/index/`, `graph/` | **Persistent** index; reused for `/analyze-mr`. |
+| `.repository-analysis/index/` | **Persistent** structural index (`/create_index`). |
+| `.repository-analysis/graph/` | **Persistent** graph export (`/create_graph`). Downstream skills use whichever exists. |
 | `.repository-analysis/catalog/` | Optional boundary catalog (cross-repo hints). |
 
 Issue template (canonical): **`.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md`**
@@ -152,27 +155,35 @@ Optional: fetch Issue from GitLab via MCP or `GITLAB_TOKEN` into `run/gitlab-inp
 
 ---
 
-### Stage 2 — Index repository (`/index-repository`)
+### Stage 2a — Create index (`/create_index`)
 
-**When:** Before MR analysis (or when you need graph-backed Issue dependency context).
-
-**Copilot prompt:**
+**When:** Before MR/issue graph context or after significant repo changes.
 
 ```text
-/index-repository
+/create_index
 
-Deep-index the current repository. Incremental refresh if index already exists.
+Deep-index the current repository into .repository-analysis/index/ only.
 ```
 
-**You get (persistent):** `repository-index.sqlite`, `dependency-graph.json`, manifests under `.repository-analysis/index/` and `graph/`.
+**You get:** `repository-index.sqlite`, `repository-index.json`, `index-manifest.json`.
 
-Run once per repo (refresh after large changes or new commits).
+### Stage 2b — Create graph (`/create_graph`)
+
+**When:** After index exists and you want `dependency-graph.json` for traversal.
+
+```text
+/create_graph
+
+Export graph from existing index SQLite into .repository-analysis/graph/.
+```
+
+**You get:** `dependency-graph.json`, `graph-manifest.json`. Requires Stage 2a first.
 
 ---
 
 ### Stage 3 — Analyze Merge Request (`/analyze-mr`)
 
-**When:** You have a branch or MR and an index from Stage 2.
+**When:** You have a branch or MR; use index and/or graph from Stage 2 if present.
 
 **Copilot prompt:**
 
@@ -214,9 +225,10 @@ To apply remotely: confirm explicitly; use GitLab MCP or token ([gitlab-integrat
 
 ```text
 1. /analyze-issue     → ./requirements/my-feature/
-2. /index-repository
-3. /analyze-mr        → origin/main..HEAD
-4. /update-issue      → preview only
+2. /create_index
+3. /create_graph      → optional; recommended for MR graph traversal
+4. /analyze-mr        → origin/main..HEAD
+5. /update-issue      → preview only
 
 Then delete .repository-analysis/run/ if you do not need the files.
 ```
@@ -238,6 +250,12 @@ python -m pip install -e skills/_engine
 Optional tree-sitter grammars: `skills/_engine/src/mr_impact/readers/requirements.txt`.  
 **Without uv:** [docs/reference/python-setup.md](docs/reference/python-setup.md).
 
+Validate skill layout (after setup):
+
+```bash
+python tools/validate_skills.py --strict
+```
+
 ---
 
 ## Troubleshooting
@@ -247,7 +265,7 @@ Optional tree-sitter grammars: `skills/_engine/src/mr_impact/readers/requirement
 | Slash commands missing | Run setup; confirm `.github/skills/` has four folders; reload VS Code. |
 | `render_skill.py` not found | Run setup from project root. |
 | Stale skill text in Copilot | Edit under `skills/`, re-run setup, reload window. |
-| MR analysis empty / no jobs | Run `/index-repository` first; check JIL/scripts indexed. |
+| MR analysis empty / no jobs | Run `/create_index` (and `/create_graph` if needed); check JIL/scripts indexed. |
 | Token leaks | Never commit `GITLAB_TOKEN`; use env vars or MCP only. |
 
 ---
