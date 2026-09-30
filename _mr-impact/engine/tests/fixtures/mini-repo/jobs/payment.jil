@@ -1,5 +1,0 @@
-insert_job: PAYMENT_RECON_EOD {
-  job_type: CMD
-  command: python scripts/payment_recon.py
-  box_name: EOD_BOX
-}

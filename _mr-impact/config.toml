@@ -1,6 +1,0 @@
-[core]
-project_name = "skill-gitlab"
-engine_project = "F:/Projects/skill-gitlab/_mr-impact/engine"
-run_dir = "F:/Projects/skill-gitlab/.repository-analysis/run"
-index_root = "F:/Projects/skill-gitlab/.repository-analysis"
-boundary_catalog = "F:/Projects/skill-gitlab/.repository-analysis/catalog/boundary-catalog.json"

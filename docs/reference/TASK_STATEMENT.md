@@ -326,11 +326,7 @@ current GITLAB_ISSUE_TEMPLATE.md
 
 Build a reusable structural index of the repository so Merge Request analysis can reason about code impact without repeatedly scanning the entire codebase.
 
-The indexing architecture must follow the multi-repository model defined in:
-
-```text
-MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md
-```
+Cross-repo indexing boundaries and V1 delivery limits are defined in [V1_SCOPE.md](V1_SCOPE.md) (single-repo DEEP index, optional read-only boundary catalog; no automatic org-wide deep expansion in V1).
 
 The function must support both:
 

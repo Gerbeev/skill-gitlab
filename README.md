@@ -53,7 +53,7 @@ After setup, Copilot only needs:
 │       ├── create-graph/
 │       ├── analyze-mr/
 │       └── update-issue/
-├── _mr-impact/                    ← runtime (config + render_skill; gitignore render/)
+├── _mr-impact/                    ← runtime after setup (gitignored; run setup.py)
 └── skills/                        ← source of truth (edit here, then re-run setup)
 ```
 
@@ -152,7 +152,7 @@ Clean up .repository-analysis/run/ after I confirm.
 | `01-generated-issue.md` | Paste-ready Issue body |
 | `issue-intent.json` | Structured gaps, anchors, and bounded graph paths |
 
-Optional: fetch Issue from GitLab via MCP or `GITLAB_TOKEN` into `run/gitlab-input/` (see [docs/README.md](docs/README.md#example-2--analyze-issue-gitlab-issue--mcp)).
+Optional: fetch Issue from GitLab via MCP or `GITLAB_TOKEN` into `run/gitlab-input/` (see [gitlab-integration](docs/reference/gitlab-integration.md)).
 
 ---
 
@@ -240,7 +240,7 @@ To apply remotely: confirm explicitly; use GitLab MCP or token ([gitlab-integrat
 Then delete .repository-analysis/run/ if you do not need the files.
 ```
 
-More examples (GitLab MR, boundary catalog): **[docs/README.md](docs/README.md)**.
+GitLab prompts and boundary catalog: **[gitlab-integration](docs/reference/gitlab-integration.md)** · **[boundary-catalog.example.json](docs/reference/boundary-catalog.example.json)** · doc index: **[docs/README.md](docs/README.md)**.
 
 ---
 
@@ -294,5 +294,5 @@ skills/                 # Skill sources (edit here)
 skills/mr-impact-method/# Setup + render_skill + run_engine
 skills/_engine/         # Shared Python engine
 docs/                   # Templates, glossary, integration guides
-examples/               # BMAD + iFlow references (not product code)
+examples/BMAD-METHOD/   # BMAD reference (not product code)
 ```

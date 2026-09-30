@@ -57,7 +57,7 @@ Incremental: unchanged file hashes are skipped on re-run (SQLite).
 pip install -r src/mr_impact/readers/requirements.txt
 ```
 
-Grammars install to `src/mr_impact/readers/_lib` (see iFlow-style layout).
+Grammars install to `src/mr_impact/readers/_lib` (optional; see `readers/requirements.txt`).
 
 ## Tests
 

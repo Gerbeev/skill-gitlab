@@ -68,7 +68,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | **`mr_impact`**         | Python package name under `skills/_engine/src/mr_impact/`.                                                                                                                                     |
 | **`mr-impact` CLI**     | Console entry point (`python -m mr_impact`): `create-index`, `create-graph`, `analyze-issue`, `analyze-mr`, `update-issue`; legacy `index-repository` (deprecated). See [engine-contract.md](engine-contract.md).                   |
 | **Adapter**             | Pluggable extractor for a file type or operational format (Python `ast`, JIL, SQL, C# structure, generic paths, etc.). Outputs symbols, nodes, and edges with **evidence** and **confidence**. |
-| **Reader (iFlow)**      | Optional parsers in `mr_impact/readers/` (from `examples/iFlow`): `python_ast` (stdlib) and `treesitter` (optional grammars). Feeds adapters when wired.                                       |
+| **Reader**              | Optional parsers in `mr_impact/readers/`: `python_ast` (stdlib) and `treesitter` (optional grammars). Feeds adapters when wired.                                                             |
 | **Deterministic layer** | Git, diff, parsing, graph traversal, artifact validation — must not be replaced by LLM guessing.                                                                                               |
 | **AI layer**            | Issue interpretation, ambiguity, human-readable reports, template filling — governed by `GITLAB_ISSUE_TEMPLATE.md` and evidence rules.                                                         |
 
@@ -88,7 +88,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | **`issue-update.json`** | Update Issue: structured preview (`gitlab_apply` always false in engine). |
 | **`boundary-hints.json`** | Analyze MR: optional cross-repo hints from boundary catalog matches. |
 | **Machine-readable JSON** | e.g. `mr-context.json`, `changed-symbols.json`, `impact-graph.json`, `runtime-impact.json`, `test-impact.json` — produced by the engine for tooling and skill presentation. |
-| **`GITLAB_ISSUE_TEMPLATE.md`** | Authoritative Issue structure for `/analyze-issue`; canonical copy in `.github/skills/analyze-issue/`. Mirror in `docs/` for readability. |
+| **`GITLAB_ISSUE_TEMPLATE.md`** | Authoritative Issue structure for `/analyze-issue`; canonical copy in `.github/skills/analyze-issue/` (source: `skills/analyze-issue/`). |
 
 ---
 
@@ -130,7 +130,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | `.github/skills/` | Copilot-facing copies (five skill folders). |
 | `_mr-impact/` | Installed runtime after setup. |
 | `.repository-analysis/` | Index, graph, catalog, and ephemeral `run/`. |
-| `examples/BMAD-METHOD`, `examples/iFlow` | Reference implementations; not shipped as product code. |
+| `examples/BMAD-METHOD` | Reference Copilot skill layout; not shipped as product code. |
 
 ---
 

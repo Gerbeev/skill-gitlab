@@ -11,17 +11,17 @@ Recommended engineering patterns:
 | Source | Take for this repo |
 | --- | --- |
 | **BMAD Method** (`examples/BMAD-METHOD`) | Thin `SKILL.md` → single CLI/renderer → halt on failure; workflow content lives outside the skill surface |
-| **iFlow** (`examples/iFlow`) | Python `ast` floor; optional tree-sitter; confidence + `unknown` reporting; index as cache tied to Git freshness |
+| **Engine readers** (`skills/_engine/src/mr_impact/readers/`) | Python `ast` floor; optional tree-sitter; honest unread status; index manifest tied to Git freshness |
 
 ---
 
 ## TASK_STATEMENT strengths (keep as-is)
 
-1. **Four skills, one engine** — clear product surface and test strategy.
+1. **Five skills, one engine** — clear product surface and test strategy.
 2. **Analyze Issue** — two artifacts only; template is the sole Issue schema (`GITLAB_ISSUE_TEMPLATE.md`).
 3. **Analyze MR** — explicit ban on grading the developer against the Issue; neutral traceability only.
 4. **Runtime/QA focus** — impact must reach jobs/processes, not only files (differentiator for enterprise estates).
-5. **Evidence model** — detector, confidence, paths; aligns with iFlow trust levels.
+5. **Evidence model** — detector, confidence, paths; unresolved claims stay explicit in reports and JSON.
 6. **Security** — untrusted Issue/MR/docs; no command execution from content.
 
 ---
@@ -32,7 +32,7 @@ Recommended engineering patterns:
 | --- | --- | --- |
 | Org boundary catalog | Required in §3, §4, §13–14 | V1: optional local JSON stub; no automated org indexer |
 | Cross-repo deep scan | Described as core strategy | V1: report external candidates only; no automatic deep-index of other repos |
-| `MULTI_REPOSITORY_INDEXING_ARCHITECTURE.md` | Referenced | Keep as **target architecture**; V1 implements **single-repo** subset + extension points (`catalog.py`, `expansion.py`) |
+| Multi-repo deep indexing (full org model) | Described in TASK_STATEMENT | V1: **single-repo** DEEP index + optional boundary catalog; extension points in engine (`catalog`, `expansion`) — see [V1_SCOPE.md](V1_SCOPE.md) |
 | `V1_SCOPE.md` | Linked in delivery note | **Created**; TASK_STATEMENT delivery note updated to point here |
 | Package layout `src/mr_impact/...` | §7 | Actual layout: `skills/_engine/src/mr_impact/` — spec should not imply a second root |
 | `issue-intent.json` | §12 artifacts list | Clarify: optional machine artifact for `/analyze-issue`; not a third user-facing file |
@@ -53,7 +53,7 @@ Recommended engineering patterns:
 
 **Defer:** full PL/SQL semantic graph, exhaustive DI/reflection, generated-code deep parsing.
 
-**iFlow borrow:** `examples/iFlow/framework/readers/python_ast.py` and `treesitter.py` — use the same dependency list pattern (`requirements.txt` + optional `_lib` install) so CI and laptops without grammars still get honest “unread” status.
+**Readers:** `readers/requirements.txt` + optional `_lib` install so CI and laptops without grammars still get honest “unread” status.
 
 ### 2. Graph edges — V1 required vs optional
 
@@ -88,9 +88,9 @@ Keeps template drift impossible without parsing the template file.
 
 Document in CLI help and each `SKILL.md`.
 
-### 6. Validation gate (iFlow-inspired)
+### 6. Validation gate
 
-iFlow `check.py` validates artifact shape against templates. For MVP, add **engine subcommand or test module** `validate-artifacts` that checks:
+Optional **engine subcommand or test module** `validate-artifacts` that checks:
 
 - required files exist;
 - JSON schemas minimal (required keys);
@@ -132,21 +132,6 @@ Stage 2 work: implement four `SKILL.md` files **strictly** from this pattern + T
 
 ---
 
-## iFlow — parsing and estate model
-
-| iFlow concept | Application here |
-| --- | --- |
-| `python_ast.read()` | Baseline Python adapter; local type bindings; line spans for MR hunk mapping |
-| `treesitter` reader | Optional multi-language; extension → grammar table; degrade to “unread” |
-| Trust: `derived` vs `matched` | Map to engine `confidence` + `detector` fields |
-| `estate.py freshness` | Index manifest: Git commit, file hashes, adapter versions |
-| `unknown` / `corrections` | Surface in `03-impact-analysis.md` and JSON as `UNRESOLVED` nodes |
-| On-demand vs persisted | TASK_STATEMENT chooses **persisted SQLite** for MR speed — keep iFlow’s invalidation rules in `index-manifest.json` |
-
-**Libraries (from iFlow `readers/requirements.txt`):** vendored under `skills/_engine/src/mr_impact/readers/`; pin list in `readers/requirements.txt` when the engine adapters layer is implemented.
-
----
-
 ## Architecture improvements (engine + docs)
 
 1. **Single entry CLI** — `mr-impact` with subcommands matching the five skills ([engine-contract.md](engine-contract.md)); skills must not fork alternate orchestration.
@@ -174,7 +159,7 @@ Stage 2 work: implement four `SKILL.md` files **strictly** from this pattern + T
 
 | Topic | Decision |
 | --- | --- |
-| Issue template | `.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md` (skill root); `docs/` mirror for readability |
+| Issue template | `.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md` (skill root; source under `skills/analyze-issue/`) |
 | Adapter priority | C# → Oracle SQL/PL/SQL → JIL → Scala/Java → rest |
 | Boundary catalog | Example JSON in repo; runtime file `.repository-analysis/catalog/boundary-catalog.json`; read-only hints in V1 |
 | Run outputs | `.repository-analysis/run/`, ephemeral cleanup |
@@ -183,13 +168,8 @@ Stage 2 work: implement four `SKILL.md` files **strictly** from this pattern + T
 
 ---
 
-## Stage 2 preview (skills implementation)
+## Skills delivery
 
-Per user plan, next phase:
-
-1. Copy BMAD **thin SKILL** pattern only (no `_bmad` install requirement).
-2. Wire each skill to `skills/_engine` CLI with documented arguments matching §15 examples.
-3. Add `references/` per skill only if `SKILL.md` exceeds ~120 lines (e.g. analyze-mr phase checklist).
-4. Integration test: skill text contains required halt/run commands; engine tests cover behavior.
+Shipped: five Copilot skills under `.github/skills/`, wired to `run_engine.py` per [engine-contract.md](engine-contract.md). Status: [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md).
 
 No skill should embed indexing algorithms or Issue section lists duplicated from `GITLAB_ISSUE_TEMPLATE.md`.

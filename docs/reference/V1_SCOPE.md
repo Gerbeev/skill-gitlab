@@ -43,8 +43,6 @@ The authoritative template for `/analyze-issue` ships with the skill:
 .github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md
 ```
 
-`docs/GITLAB_ISSUE_TEMPLATE.md` is a documented mirror for humans; keep both in sync or treat the skill copy as source of truth.
-
 ## V1 in scope
 
 ### Shared engine

@@ -86,7 +86,7 @@ Every reported node must include a **`path[]`** from anchor to target (node ids 
 
 ### 5.1 What indexing stores (conceptual)
 
-During `/index-repository`, the JIL adapter records **nodes** and **edges**, for example:
+During `/create_index` (and graph export via `/create_graph` when needed), the JIL adapter records **nodes** and **edges**, for example:
 
 ```text
 AUTOSYS_JOB     PAYMENT_RECON_EOD
@@ -174,7 +174,7 @@ mr-impact query-graph \
 
 `analyze-issue` may invoke this internally when anchors are non-empty and index freshness checks pass.
 
-**Freshness:** if index commit ≠ current `HEAD`, skill should recommend `/index-repository` refresh before trusting paths.
+**Freshness:** if index commit ≠ current `HEAD`, skill should recommend `/create_index` (and `/create_graph` if graph paths are needed) before trusting paths.
 
 ---
 
