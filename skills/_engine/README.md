@@ -2,6 +2,26 @@
 
 Shared Python package for **DEEP indexing**, Issue prep, MR impact, and Issue update preview. Copilot skills invoke it via `_mr-impact/scripts/run_engine.py`. Canonical CLI and artifacts: [docs/reference/engine-contract.md](../../docs/reference/engine-contract.md). QA dependency chains: [nearest-runtime-impact-paths.md](../../docs/reference/nearest-runtime-impact-paths.md).
 
+**Engine-only changes:** edit Python under `src/mr_impact/` and `tests/` here — not markdown under `skills/<name>/` unless the skill workflow itself must change. After engine edits, run `python tools/quality.py` from the repo root (bundles `_mr-impact/engine` via setup).
+
+## Layout (`src/mr_impact`)
+
+| Area | Role |
+| --- | --- |
+| `paths.py` | `.repository-analysis/` layout (index, graph, run, catalog) |
+| `json_io.py` | Shared JSON read/write for run artifacts |
+| `cli.py` / `cli_dispatch.py` | CLI entry and command dispatch |
+| `index/` | DEEP index pipeline, SQLite store, language adapters |
+| `readers/` | Optional tree-sitter / AST readers used by adapters |
+| `graph/` | Impact traversal and nearest runtime QA paths |
+| `git/` | Revision parsing and diff-accurate symbol mapping |
+| `issue/`, `mr/` | analyze-issue and analyze-mr orchestration |
+| `mr/symbols_from_diff.py` | MR index refresh + diff-accurate symbols |
+| `mr/run_context.py` | Shared `MrRunContext` after graph/MR computation |
+| `mr/payloads.py` | MR run JSON artifacts |
+| `mr/reports.py` | `01`–`04` markdown for analyze-mr |
+| `artifacts/` | Contract validation (`validate.py`, `contract.py`) |
+
 ## Install (optional)
 
 ```bash

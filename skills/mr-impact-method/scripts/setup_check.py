@@ -68,12 +68,12 @@ def owed(skill_dir: Path, project_root: Path | None) -> list[str]:
     sqlite = _index_sqlite(project_root)
     if skill_name == "create-graph" and not sqlite.is_file():
         notes.append(
-            "needs `index/repository-index.sqlite`. Offer `/create_index` (create-index skill) first."
+            "needs `index/repository-index.sqlite`. Offer `/create-index` (create-index skill) first."
         )
 
     if skill_name in USES_INDEX and skill_name not in REQUIRES_INDEX and not sqlite.is_file():
         notes.append(
-            "works best after `/create_index` — `.repository-analysis/index/` is missing. "
+            "works best after `/create-index` — `.repository-analysis/index/` is missing. "
             "Offer create-index; proceed with Issue text only if the user accepts."
         )
 
@@ -84,7 +84,7 @@ def owed(skill_dir: Path, project_root: Path | None) -> list[str]:
 
     if skill_name in USES_GRAPH and sqlite.is_file() and not _graph_manifest(project_root).is_file():
         notes.append(
-            "has index but no `graph/graph-manifest.json`. For JSON export offer `/create_graph`; "
+            "has index but no `graph/graph-manifest.json`. For JSON export offer `/create-graph`; "
             "analyze-mr still uses index SQLite when graph JSON is absent."
         )
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,7 +8,9 @@ from mr_impact.index.adapters.base import Adapter
 from mr_impact.git.diff import ChangedFile
 from mr_impact.index.scanner import file_hash, git_head, list_repo_files
 from mr_impact.index.store import IndexStore
+from mr_impact.json_io import write_json
 from mr_impact.models import FileIndexResult
+from mr_impact.paths import analysis_paths  # re-exported for callers
 from mr_impact.readers import claims, derivation, readable, who
 
 
@@ -40,11 +41,6 @@ def select_adapter(adapters: list[Adapter], rel_path: str) -> Adapter:
         if adapter.matches(rel_path):
             return adapter
     return ordered[-1]
-
-
-def analysis_paths(project_root: Path, analysis_root: Path | None = None) -> tuple[Path, Path]:
-    root = analysis_root or (project_root / ".repository-analysis")
-    return root / "index", root / "graph"
 
 
 def _index_one_file(
@@ -99,8 +95,8 @@ def _persist_index_sidecars(
     summary.update(run_stats)
     summary["readers"] = who()
 
-    _write_json(index_dir / "repository-index.json", summary)
-    _write_json(
+    write_json(index_dir / "repository-index.json", summary)
+    write_json(
         index_dir / "index-manifest.json",
         {
             "schema_version": 1,
@@ -296,7 +292,7 @@ def run_create_graph(
         "nodes": store.iter_graph_nodes(),
         "edges": store.iter_graph_edges(),
     }
-    _write_json(graph_dir / "dependency-graph.json", graph)
+    write_json(graph_dir / "dependency-graph.json", graph)
     manifest = {
         "schema_version": 1,
         "git_head": head,
@@ -306,7 +302,7 @@ def run_create_graph(
         "node_count": len(graph["nodes"]),
         "source_index_manifest": "index/index-manifest.json",
     }
-    _write_json(graph_dir / "graph-manifest.json", manifest)
+    write_json(graph_dir / "graph-manifest.json", manifest)
 
     store.close()
     return {
@@ -330,6 +326,3 @@ def run_deep_index(
     summary["graph"] = graph
     return summary
 
-
-def _write_json(path: Path, payload: dict) -> None:
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

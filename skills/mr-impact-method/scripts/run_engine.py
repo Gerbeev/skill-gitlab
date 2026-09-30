@@ -11,28 +11,7 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 
-try:
-    from config_utils import ConfigError, load_central_config
-except ImportError:
-    load_central_config = None
-
-
-def engine_root(project_root: Path) -> Path:
-    bundled = project_root / "_mr-impact" / "engine"
-    dev = project_root / "skills" / "_engine"
-    if load_central_config is not None:
-        try:
-            cfg = load_central_config(project_root)
-            raw = cfg.get("core", {}).get("engine_project")
-            if isinstance(raw, str) and raw.strip():
-                candidate = Path(raw.replace("{project-root}", project_root.as_posix()))
-                if (candidate / "src" / "mr_impact").is_dir():
-                    return candidate
-        except ConfigError:
-            pass
-    if (bundled / "src" / "mr_impact").is_dir():
-        return bundled
-    return dev
+from engine_paths import resolve_runtime_engine_root
 
 
 def main() -> int:
@@ -44,7 +23,7 @@ def main() -> int:
     forwarded = list(args.engine_args)
     if forwarded and forwarded[0] == "--":
         forwarded = forwarded[1:]
-    engine = engine_root(project_root)
+    engine = resolve_runtime_engine_root(project_root)
     src = engine / "src"
     if not (src / "mr_impact").is_dir():
         sys.stderr.write(

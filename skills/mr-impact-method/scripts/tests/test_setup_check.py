@@ -42,7 +42,7 @@ class SetupCheckTests(unittest.TestCase):
         (engine / "__init__.py").write_text("", encoding="utf-8")
         folder = self._skill_dir("create-graph")
         notes = setup_check.owed(folder, self.project)
-        self.assertTrue(any("create_index" in note.lower() or "create-index" in note for note in notes))
+        self.assertTrue(any("create-index" in note for note in notes))
 
     def test_analyze_mr_requires_index(self) -> None:
         runtime = self.project / "_mr-impact" / "scripts"

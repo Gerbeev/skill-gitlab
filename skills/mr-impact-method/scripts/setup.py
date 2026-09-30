@@ -24,6 +24,7 @@ COPILOT_SKILLS = (
 )
 SCRIPT_NAMES = (
     "config_utils.py",
+    "engine_paths.py",
     "render_skill.py",
     "resolve_config.py",
     "run_engine.py",
@@ -64,10 +65,9 @@ ENGINE_IGNORE = shutil.ignore_patterns(
 
 
 def resolve_engine_source(project_root: Path, method_dir: Path) -> Path | None:
-    for candidate in (project_root / "skills" / "_engine", method_dir.parent / "_engine"):
-        if (candidate / "src" / "mr_impact").is_dir():
-            return candidate
-    return None
+    from engine_paths import resolve_source_engine_for_copy
+
+    return resolve_source_engine_for_copy(project_root, method_dir)
 
 
 def copy_engine(project_root: Path, method_dir: Path) -> str | None:

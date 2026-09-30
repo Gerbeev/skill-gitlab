@@ -17,8 +17,8 @@ issue_dir: ''
 2. **Index / graph (optional, use what exists).**
    - If `index/repository-index.sqlite` or `index/index-manifest.json` exists → load freshness (`git_head`) and summary; use SQLite-backed detail when graph JSON is absent.
    - If `graph/dependency-graph.json` exists → use for bounded traversal; if **both** index and graph exist, prefer graph JSON for traversal and index manifest for freshness/stats.
-   - If **neither** folder has useful artifacts → tell the user to run `/create_index`; offer `/create_graph` when traversal needs JSON export. Do not invent edges.
-   - If index exists but graph does not → proceed with index-only context; mention `/create_graph` if deeper traversal is needed.
+   - If **neither** folder has useful artifacts → tell the user to run `/create-index`; offer `/create-graph` when traversal needs JSON export. Do not invent edges.
+   - If index exists but graph does not → proceed with index-only context; mention `/create-graph` if deeper traversal is needed.
 3. **Issue context.** Optional folder with `01-generated-issue.md` or GitLab fetch output.
 4. **Boundary catalog.** If `{project-root}/.repository-analysis/catalog/boundary-catalog.json` exists, note it for cross-repo hints only.
 

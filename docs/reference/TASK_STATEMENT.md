@@ -7,8 +7,8 @@
 Build a local-first Copilot Skill suite with **five** user-facing skills backed by one shared implementation engine:
 
 1. **`/analyze-issue`**
-2. **`/create_index`** (engine: `create-index`)
-3. **`/create_graph`** (engine: `create-graph`)
+2. **`/create-index`** (engine: `create-index`)
+3. **`/create-graph`** (engine: `create-graph`)
 4. **`/analyze-mr`**
 5. **`/update-issue`**
 
@@ -1287,8 +1287,8 @@ The product must expose five separate project skills:
 
 ```text
 /analyze-issue
-/create_index
-/create_graph
+/create-index
+/create-graph
 /analyze-mr
 /update-issue
 ```
@@ -1302,7 +1302,7 @@ Conceptual architecture:
 ```text
 /analyze-issue
       │
-/create_index ──→ /create_graph (optional export)
+/create-index ──→ /create-graph (optional export)
       │
 /analyze-mr
       ├──────────────→ shared mr-impact engine
@@ -1580,8 +1580,8 @@ Preferred VS Code Copilot Agent Mode usage:
 
 ```text
 /analyze-issue
-/create_index
-/create_graph
+/create-index
+/create-graph
 /analyze-mr
 /update-issue
 ```
@@ -1640,10 +1640,10 @@ issue-intent.json
 
 ## 15.3 Index and graph (shipped skills)
 
-### Deep index (`/create_index`)
+### Deep index (`/create-index`)
 
 ```text
-/create_index
+/create-index
 
 Build or incrementally refresh the DEEP structural index for the current repository
 into .repository-analysis/index/ only.
@@ -1653,10 +1653,10 @@ Reuse unchanged indexed content (content-hash skip).
 
 Engine: `python -m mr_impact create-index`
 
-### Graph export (`/create_graph`)
+### Graph export (`/create-graph`)
 
 ```text
-/create_graph
+/create-graph
 
 Export dependency-graph.json from existing index SQLite into .repository-analysis/graph/.
 Requires create-index first.
@@ -1768,9 +1768,9 @@ The normal complete workflow is the sequential use of the five skills:
 ```text
 /analyze-issue
       ↓
-/create_index
+/create-index
       ↓
-/create_graph (recommended for graph JSON)
+/create-graph (recommended for graph JSON)
       ↓
 /analyze-mr
       ↓
@@ -1783,9 +1783,9 @@ Example:
 1. /analyze-issue
    Use ./requirements/issue-input/.
 
-2. /create_index
+2. /create-index
 
-3. /create_graph
+3. /create-graph
 
 4. /analyze-mr
    Analyze origin/main..HEAD.
@@ -1808,7 +1808,7 @@ Each wrapper must have one responsibility.
 
 Its `SKILL.md` should describe only Issue analysis/generation behavior and route to the shared `analyze-issue` engine operation.
 
-### `/create_index` and `/create_graph`
+### `/create-index` and `/create-graph`
 
 Their `SKILL.md` files should describe indexing and graph export and route to `create-index` and `create-graph` respectively.
 

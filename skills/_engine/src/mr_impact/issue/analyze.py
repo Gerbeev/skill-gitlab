@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 
 from mr_impact.graph.query import anchored_paths
 from mr_impact.index.scanner import git_head
+from mr_impact.json_io import write_json
+from mr_impact.paths import analysis_layout
 
 INPUT_EXTENSIONS = {".md", ".txt", ".rst", ".adoc", ".json", ".yaml", ".yml"}
 
@@ -130,8 +131,9 @@ def run_analyze_issue(
     head = git_head(project_root)
     paths = anchored_paths(project_root, anchors)
 
-    indexed = (project_root / ".repository-analysis" / "index" / "repository-index.sqlite").is_file()
-    graph_json = (project_root / ".repository-analysis" / "graph" / "dependency-graph.json").is_file()
+    layout = analysis_layout(project_root)
+    indexed = layout.index_present
+    graph_json = layout.graph_json_present
 
     now = datetime.now(timezone.utc).isoformat()
     analysis_path = run_dir / "00-issue-analysis.md"
@@ -150,10 +152,7 @@ def run_analyze_issue(
         index_present=indexed,
         graph_json_present=graph_json,
     )
-    intent_path.write_text(
-        json.dumps(intent_payload, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
+    write_json(intent_path, intent_payload)
 
     analysis_lines = [
         "# Issue analysis",
@@ -184,7 +183,7 @@ def run_analyze_issue(
     analysis_lines.extend(["", "## Dependency paths (anchored, bounded)", ""])
     if not indexed and not graph_json:
         analysis_lines.append(
-            "- No repository index/graph. Run `/create_index` (and `/create_graph` if needed) "
+            "- No repository index/graph. Run `/create-index` (and `/create-graph` if needed) "
             "for path evidence, or list dependencies explicitly in the Issue only."
         )
     elif not paths:

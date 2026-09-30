@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from mr_impact.index.adapters.base import Adapter
+from mr_impact.index.adapters.reader_calls import edges_from_reader_calls
 from mr_impact.index.sql_literals import sql_call_edges_from_literals
 from mr_impact.models import Edge, Symbol
 from mr_impact.readers import claims, read as reader_read
@@ -22,14 +23,6 @@ _METHOD_DECL = re.compile(
     r"[\w<>,\[\]?]+\s+(\w+)\s*\([^;{}]*\)\s*(?:=>|{)",
     re.M,
 )
-
-_CALL_CONFIDENCE = {
-    "import": "high",
-    "typed": "high",
-    "name": "medium",
-    "attribute": "low",
-}
-
 
 class CSharpAdapter(Adapter):
     name = "csharp"
@@ -94,13 +87,7 @@ class CSharpAdapter(Adapter):
             symbols.append(Symbol(name, "csharp_definition", start, end))
 
         seen_sql: set[str] = set()
-        for name, kind, start, end in calls:
-            if kind == "import":
-                edge_type = "csharp_using"
-            else:
-                edge_type = "calls"
-            conf = _CALL_CONFIDENCE.get(kind, "low")
-            edges.append(Edge(name, edge_type, conf, rel_path, start, end))
+        edges.extend(edges_from_reader_calls(rel_path, calls, import_edge_type="csharp_using"))
         edges.extend(sql_call_edges_from_literals(rel_path, text, seen=seen_sql))
 
         notes = [f"unresolved: {u}" for u in unresolved] if unresolved else []

@@ -1,12 +1,13 @@
 # Documentation
 
-**Install and usage:** root **[README.md](../README.md)** (setup, staged workflow, prompts, outputs).
+**Install and usage:** root **[README.md](../README.md)** (setup, staged workflow, minimal prompt parameters, outputs).
 
 ## Index
 
 | Document | Purpose |
 | --- | --- |
 | [REFACTORING_PLAN.md](REFACTORING_PLAN.md) | Структурный рефакторинг репозитория (архитектура, фазы) |
+| [ENGINE_REFACTORING_LOG.md](ENGINE_REFACTORING_LOG.md) | Журнал рефакторинга Python (без markdown-скиллов) |
 | [DELETION_CANDIDATES.md](DELETION_CANDIDATES.md) | Файлы и каталоги, которые можно удалить (с уровнем уверенности) |
 | [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) | Roadmap — phases and delivery status |
 | [reference/engine-contract.md](reference/engine-contract.md) | **Canonical CLI** and run artifacts (skills must match) |

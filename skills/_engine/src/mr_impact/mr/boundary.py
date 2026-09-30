@@ -3,9 +3,11 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from mr_impact.paths import analysis_layout
+
 
 def load_boundary_catalog(project_root: Path) -> dict | None:
-    path = project_root / ".repository-analysis" / "catalog" / "boundary-catalog.json"
+    path = analysis_layout(project_root).boundary_catalog_json
     if not path.is_file():
         return None
     try:

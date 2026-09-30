@@ -21,12 +21,12 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 | Term                    | Meaning                                                                                                                                                |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Project skill**       | A skill stored under `.github/skills/<name>/` that VS Code Copilot exposes as a slash command (e.g. `/analyze-issue`).                                 |
-| **Slash command**       | User invocation in Copilot Chat: `/analyze-issue`, `/create_index`, `/create_graph`, `/analyze-mr`, `/update-issue`. There are exactly five.                        |
+| **Slash command**       | User invocation in Copilot Chat: `/analyze-issue`, `/create-index`, `/create-graph`, `/analyze-mr`, `/update-issue`. There are exactly five.                        |
 | **Skill package**       | Source folder under `skills/<name>/` containing `SKILL.md`, `workflow.md`, steps, and optional `references/`. Synced to `.github/skills/` by setup.    |
 | **`SKILL.md`**          | Thin entrypoint (BMAD pattern): tells the agent to run `render_skill.py` once, then follow the printed workflow path. Must not duplicate engine logic. |
 | **`/analyze-issue`**    | Skill: analyze input material and produce `00-issue-analysis.md` and `01-generated-issue.md` from `GITLAB_ISSUE_TEMPLATE.md`.                          |
-| **`/create_index`** | Skill: build or refresh **DEEP** index under `.repository-analysis/index/`. |
-| **`/create_graph`** | Skill: export dependency graph JSON under `.repository-analysis/graph/` from index SQLite. |
+| **`/create-index`** | Skill: build or refresh **DEEP** index under `.repository-analysis/index/`. |
+| **`/create-graph`** | Skill: export dependency graph JSON under `.repository-analysis/graph/` from index SQLite. |
 | **`/analyze-mr`**       | Skill: deterministic MR change analysis, bounded impact graph, runtime/QA scope, and reports (`01`–`04` markdown + JSON).                              |
 | **`/update-issue`**     | Skill: local preview `05-issue-update.md` after MR analysis; GitLab apply only when the user explicitly confirms.                                      |
 
@@ -96,7 +96,7 @@ Key terms used across MR Impact documentation, skills, and the shared engine. Na
 
 | Term | Meaning |
 | --- | --- |
-| **DEEP indexing** | Full structural index of the **current** repository (`/create_index`). Graph export is separate (`/create_graph`). |
+| **DEEP indexing** | Full structural index of the **current** repository (`/create-index`). Graph export is separate (`/create-graph`). |
 | **BOUNDARY indexing** | Lightweight cross-repo entity extraction (tables, jobs, APIs) for organization scale. Full auto org-wide pipeline is post-V1; V1 uses optional **boundary catalog** file only. |
 | **Dependency graph** | Persisted edges (`IMPORTS`, `CALLS`, `CONFIGURES`, job/script links, etc.) with bounds and confidence. |
 | **Boundary catalog** | Optional `.repository-analysis/catalog/boundary-catalog.json` mapping entities (e.g. `table://…`, `job://…`) to candidate repositories. Read-only hints in MR analysis in V1. |

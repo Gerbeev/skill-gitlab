@@ -9,8 +9,8 @@ This document defines what the **first shippable version** of the repository mus
 | Skill | Engine command | Required V1 behavior |
 | --- | --- | --- |
 | `/analyze-issue` | `analyze-issue` | `00-issue-analysis.md` + `01-generated-issue.md` from scoped input + skill-root template |
-| `/create_index` | `create-index` | **DEEP** structural index → `.repository-analysis/index/` only |
-| `/create_graph` | `create-graph` | Export graph JSON from index SQLite → `.repository-analysis/graph/` |
+| `/create-index` | `create-index` | **DEEP** structural index → `.repository-analysis/index/` only |
+| `/create-graph` | `create-graph` | Export graph JSON from index SQLite → `.repository-analysis/graph/` |
 | `/analyze-mr` | `analyze-mr` | Deterministic diff → symbols → bounded graph → runtime/QA hints → reports + JSON |
 | `/update-issue` | `update-issue` | Local preview `05-issue-update.md`; GitLab apply **opt-in** (token or MCP) |
 
@@ -54,7 +54,7 @@ The authoritative template for `/analyze-issue` ships with the skill:
 
 ### Indexing (DEEP only)
 
-- **One repository at a time** (where the agent runs `/create_index`).
+- **One repository at a time** (where the agent runs `/create-index`).
 - Incremental refresh when Git HEAD / file hashes change (`create-index`).
 
 **Adapter priority (V1 implementation order):**

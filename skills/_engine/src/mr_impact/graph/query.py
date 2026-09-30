@@ -5,6 +5,8 @@ import sqlite3
 from collections import deque
 from pathlib import Path
 
+from mr_impact.paths import AnalysisLayout, analysis_layout
+
 
 def _load_edges_sqlite(db_path: Path) -> list[dict]:
     conn = sqlite3.connect(db_path)
@@ -38,10 +40,20 @@ def _load_edges_json(graph_path: Path) -> list[dict]:
     return normalized
 
 
+def load_indexed_edges(layout: AnalysisLayout) -> list[dict]:
+    """Edges from index SQLite, else from exported graph JSON."""
+    if layout.index_present:
+        return _load_edges_sqlite(layout.index_sqlite)
+    if layout.graph_json_present:
+        return _load_edges_json(layout.dependency_graph_json)
+    return []
+
+
 def anchored_paths(
     project_root: Path,
     anchors: set[str],
     *,
+    analysis_root: Path | None = None,
     max_depth: int = 10,
     max_nodes: int = 200,
 ) -> list[dict]:
@@ -49,16 +61,9 @@ def anchored_paths(
     if not anchors:
         return []
 
-    root = project_root / ".repository-analysis"
-    db = root / "index" / "repository-index.sqlite"
-    graph = root / "graph" / "dependency-graph.json"
-
-    edges: list[dict] = []
-    if db.is_file():
-        edges = _load_edges_sqlite(db)
-    elif graph.is_file():
-        edges = _load_edges_json(graph)
-    else:
+    layout = analysis_layout(project_root, analysis_root)
+    edges = load_indexed_edges(layout)
+    if not edges:
         return []
 
     anchor_lower = {a.lower() for a in anchors}

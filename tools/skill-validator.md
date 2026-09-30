@@ -83,7 +83,7 @@ If `--json` reports zero findings for a rule, treat that rule as satisfied. Re-c
 ### SEQ-01 — No skip / reorder optimization
 
 - **Severity:** HIGH  
-- **Rule:** No “skip to step 3” or “you may skip checkpoints” except negated (“do NOT skip”). Conditional routing (if index missing → tell user `/create_index`) is allowed.
+- **Rule:** No “skip to step 3” or “you may skip checkpoints” except negated (“do NOT skip”). Conditional routing (if index missing → tell user `/create-index`) is allowed.
 
 ### REF-01 — Rendered vs runtime placeholders
 
@@ -98,7 +98,7 @@ If `--json` reports zero findings for a rule, treat that rule as satisfied. Re-c
 ### REF-03 — Invoke other skills by name
 
 - **Severity:** MEDIUM  
-- **Rule:** Prefer “run `/create_index`” over hardcoding another skill’s internal step paths.
+- **Rule:** Prefer “run `/create-index`” over hardcoding another skill’s internal step paths.
 
 ---
 

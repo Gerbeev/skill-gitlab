@@ -5,12 +5,33 @@ Five VS Code **GitHub Copilot** project skills for Issue analysis, index/graph b
 | Slash command | Purpose |
 | --- | --- |
 | `/analyze-issue` | Analysis report + GitLab Issue body from template |
-| `/create_index` | DEEP structural index → `.repository-analysis/index/` |
-| `/create_graph` | Dependency graph JSON → `.repository-analysis/graph/` (after index) |
+| `/create-index` | DEEP structural index → `.repository-analysis/index/` |
+| `/create-graph` | Dependency graph JSON → `.repository-analysis/graph/` (after index) |
 | `/analyze-mr` | MR change impact, runtime/QA scope |
 | `/update-issue` | Issue update preview (GitLab apply opt-in) |
 
-**More detail:** [docs/README.md](docs/README.md) (extended prompts and outputs) · [Engine contract](docs/reference/engine-contract.md) (CLI + artifacts) · [GLOSSARY](docs/reference/GLOSSARY.md) · [TASK_STATEMENT](docs/reference/TASK_STATEMENT.md) · [V1 scope](docs/reference/V1_SCOPE.md) · [Development plan](docs/DEVELOPMENT_PLAN.md)
+**More detail:** [docs/README.md](docs/README.md) · [Engine contract](docs/reference/engine-contract.md) (CLI + artifacts) · [GLOSSARY](docs/reference/GLOSSARY.md) · [TASK_STATEMENT](docs/reference/TASK_STATEMENT.md) · [V1 scope](docs/reference/V1_SCOPE.md) · [Development plan](docs/DEVELOPMENT_PLAN.md)
+
+## Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+  - [Option A — Use this repository as your project](#option-a--use-this-repository-as-your-project)
+  - [Option B — Add skills to another Git repository](#option-b--add-skills-to-another-git-repository)
+  - [One-time setup (required)](#one-time-setup-required)
+  - [Verify Copilot sees the skills](#verify-copilot-sees-the-skills)
+- [How a skill run works (BMAD pattern)](#how-a-skill-run-works-bmad-pattern)
+- [Where outputs go](#where-outputs-go)
+- [Usage by stage (workflow)](#usage-by-stage-workflow)
+  - [Stage 1 — Analyze Issue](#stage-1--analyze-issue-analyze-issue)
+  - [Stage 2a — Create index](#stage-2a--create-index-create-index)
+  - [Stage 2b — Create graph](#stage-2b--create-graph-create-graph)
+  - [Stage 3 — Analyze Merge Request](#stage-3--analyze-merge-request-analyze-mr)
+  - [Stage 4 — Update Issue](#stage-4--update-issue-update-issue)
+  - [Full pipeline](#full-pipeline)
+- [Engine note](#engine-note)
+- [Troubleshooting](#troubleshooting)
+- [Repository map](#repository-map)
 
 ---
 
@@ -101,6 +122,8 @@ Each slash command:
 
 If `render_skill` is missing, run **setup** again.
 
+**In Copilot Chat**, pass only **run parameters** (paths, revision, GitLab ids, opt-in flags). Workflow, templates, and engine calls are defined in the skill—do not restate them in the prompt.
+
 ---
 
 ## Where outputs go
@@ -108,8 +131,8 @@ If `render_skill` is missing, run **setup** again.
 | Location | Purpose |
 | --- | --- |
 | `.repository-analysis/run/` | **Per-run** artifacts (Issue/MR/update). **Gitignored.** Delete before/after runs unless you want to keep them. |
-| `.repository-analysis/index/` | **Persistent** structural index (`/create_index`). |
-| `.repository-analysis/graph/` | **Persistent** graph export (`/create_graph`). Downstream skills use whichever exists. |
+| `.repository-analysis/index/` | **Persistent** structural index (`/create-index`). |
+| `.repository-analysis/graph/` | **Persistent** graph export (`/create-graph`). Downstream skills use whichever exists. |
 | `.repository-analysis/catalog/` | Optional boundary catalog (cross-repo hints). |
 
 Issue template (canonical): **`.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md`**
@@ -124,7 +147,7 @@ Issue template (canonical): **`.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLAT
 
 **When:** You have notes, requirements, or an existing Issue text; you want analysis + a template-shaped GitLab description.
 
-**Prepare (optional):**
+**Input layout (optional):**
 
 ```text
 requirements/my-feature/
@@ -132,17 +155,14 @@ requirements/my-feature/
 └── requirements.md
 ```
 
-**Copilot prompt:**
+**Prompt (parameters only):**
 
 ```text
 /analyze-issue
-
-Use input folder ./requirements/my-feature/
-Generate 00-issue-analysis.md and 01-generated-issue.md in .repository-analysis/run/
-Use GITLAB_ISSUE_TEMPLATE.md from the analyze-issue skill.
-Do not invent Acceptance Criteria without evidence.
-Clean up .repository-analysis/run/ after I confirm.
+input: ./requirements/my-feature/
 ```
+
+Or, for an existing GitLab Issue: add `issue: <project>#<iid>` or point at fetched text under `run/gitlab-input/` ([gitlab-integration](docs/reference/gitlab-integration.md)).
 
 **You get:**
 
@@ -152,49 +172,44 @@ Clean up .repository-analysis/run/ after I confirm.
 | `01-generated-issue.md` | Paste-ready Issue body |
 | `issue-intent.json` | Structured gaps, anchors, and bounded graph paths |
 
-Optional: fetch Issue from GitLab via MCP or `GITLAB_TOKEN` into `run/gitlab-input/` (see [gitlab-integration](docs/reference/gitlab-integration.md)).
-
 ---
 
-### Stage 2a — Create index (`/create_index`)
+### Stage 2a — Create index (`/create-index`)
 
 **When:** Before MR/issue graph context or after significant repo changes.
 
-```text
-/create_index
+**Prompt:**
 
-Deep-index the current repository into .repository-analysis/index/ only.
+```text
+/create-index
 ```
 
-**You get:** `repository-index.sqlite`, `repository-index.json`, `index-manifest.json`.
+**You get:** `repository-index.sqlite`, `repository-index.json`, `index-manifest.json` under `.repository-analysis/index/`.
 
-### Stage 2b — Create graph (`/create_graph`)
+### Stage 2b — Create graph (`/create-graph`)
 
 **When:** After index exists and you want `dependency-graph.json` for traversal.
 
-```text
-/create_graph
+**Prompt:**
 
-Export graph from existing index SQLite into .repository-analysis/graph/.
+```text
+/create-graph
 ```
 
-**You get:** `dependency-graph.json`, `graph-manifest.json`. Requires Stage 2a first.
+**You get:** `dependency-graph.json`, `graph-manifest.json` under `.repository-analysis/graph/`. Requires Stage 2a first.
 
 ---
 
 ### Stage 3 — Analyze Merge Request (`/analyze-mr`)
 
-**When:** You have a branch or MR; use index and/or graph from Stage 2 if present.
+**When:** You have a branch or MR; index and/or graph from Stage 2 are used when present.
 
-**Copilot prompt:**
+**Prompt:**
 
 ```text
 /analyze-mr
-
-Analyze origin/main..HEAD
-Use the existing repository index.
-Optional Issue context: 01-generated-issue.md in .repository-analysis/run/ if present.
-Focus on runtime jobs and QA scope (AutoSys/JIL where indexed).
+revision: origin/main..HEAD
+issue context (optional): .repository-analysis/run/01-generated-issue.md
 ```
 
 **You get (in `run/`):** engine-produced artifacts per [engine-contract](docs/reference/engine-contract.md):
@@ -203,9 +218,9 @@ Focus on runtime jobs and QA scope (AutoSys/JIL where indexed).
 | --- | --- |
 | `01-mr-analysis.md` … `04-test-plan.md` | `mr-context.json`, `changed-symbols.json`, `impact-graph.json`, `runtime-impact.json`, `test-impact.json` |
 
-Requires an existing index (`/create_index` first). Revision format: `base..head` (e.g. `origin/main..HEAD`).
+Requires an existing index (`/create-index` first). Revision format: `base..head` (e.g. `origin/main..HEAD`).
 
-Graph rules: bounded **nearest** paths from **diff-accurate** seeds to primary AutoSys job/box — not “all jobs in module” ([issue-anchored-graph-traversal](docs/reference/issue-anchored-graph-traversal.md), [nearest-runtime-impact-paths](docs/reference/nearest-runtime-impact-paths.md)).
+Graph rules (in skill/docs, not in the prompt): bounded **nearest** paths from **diff-accurate** seeds to primary AutoSys job/box — not “all jobs in module” ([issue-anchored-graph-traversal](docs/reference/issue-anchored-graph-traversal.md), [nearest-runtime-impact-paths](docs/reference/nearest-runtime-impact-paths.md)).
 
 ---
 
@@ -213,34 +228,41 @@ Graph rules: bounded **nearest** paths from **diff-accurate** seeds to primary A
 
 **When:** After Stage 3; you want a recorded implementation/validation update for GitLab.
 
-**Copilot prompt:**
+**Prompt:**
 
 ```text
 /update-issue
-
-Use artifacts in .repository-analysis/run/
-Generate 05-issue-update.md preview only. Do not write to GitLab unless I say "apply".
+run: .repository-analysis/run/
+apply: no
 ```
 
-**You get:** `05-issue-update.md` and `issue-update.json` (engine preview; GitLab apply stays in the skill). Target content includes **QA / runtime (nearest paths)** for testers — job, box, and dependency chain from the MR change ([nearest-runtime-impact-paths](docs/reference/nearest-runtime-impact-paths.md)); full engine support is in progress.
+Say `apply: yes` (or confirm in chat) only when you want GitLab write; see [gitlab-integration](docs/reference/gitlab-integration.md).
 
-To apply remotely: confirm explicitly; use GitLab MCP or token ([gitlab-integration](docs/reference/gitlab-integration.md)).
+**You get:** `05-issue-update.md` and `issue-update.json` (preview). Target content includes **QA / runtime (nearest paths)** for testers ([nearest-runtime-impact-paths](docs/reference/nearest-runtime-impact-paths.md)).
 
 ---
 
-### Full pipeline (copy-paste)
+### Full pipeline
+
+Run stages in order; each line is a separate chat message (or one message with the same parameter style):
 
 ```text
-1. /analyze-issue     → ./requirements/my-feature/
-2. /create_index
-3. /create_graph      → optional; recommended for MR graph traversal
-4. /analyze-mr        → origin/main..HEAD
-5. /update-issue      → preview only
+/analyze-issue
+input: ./requirements/my-feature/
 
-Then delete .repository-analysis/run/ if you do not need the files.
+/create-index
+
+/create-graph
+
+/analyze-mr
+revision: origin/main..HEAD
+
+/update-issue
+run: .repository-analysis/run/
+apply: no
 ```
 
-GitLab prompts and boundary catalog: **[gitlab-integration](docs/reference/gitlab-integration.md)** · **[boundary-catalog.example.json](docs/reference/boundary-catalog.example.json)** · doc index: **[docs/README.md](docs/README.md)**.
+GitLab and boundary catalog: **[gitlab-integration](docs/reference/gitlab-integration.md)** · **[boundary-catalog.example.json](docs/reference/boundary-catalog.example.json)** · doc index: **[docs/README.md](docs/README.md)**.
 
 ---
 
@@ -281,7 +303,7 @@ python tools/quality.py
 | Slash commands missing | Run setup; confirm `.github/skills/` has **five** folders; reload VS Code. |
 | `render_skill.py` not found | Run setup from project root. |
 | Stale skill text in Copilot | Edit under `skills/`, re-run setup, reload window. |
-| MR analysis empty / no jobs | Run `/create_index` (and `/create_graph` if needed); check JIL/scripts indexed. |
+| MR analysis empty / no jobs | Run `/create-index` (and `/create-graph` if needed); check JIL/scripts indexed. |
 | Token leaks | Never commit `GITLAB_TOKEN`; use env vars or MCP only. |
 
 ---

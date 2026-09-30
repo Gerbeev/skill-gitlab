@@ -14,7 +14,7 @@ This document defines how **related nodes** and **dependencies** are discovered 
 | **Optional (dependency context)** | When a **repository index already exists**, enrich `00-issue-analysis.md` with **anchored** dependency/runtime paths tied to **explicit** Issue mentions—not a full impact analysis. |
 | **Not in scope** | Replace `/analyze-mr`; grade implementation; unbounded repository scan; “all jobs in a module.” |
 
-If the user only analyzes Issue text and no index exists, the skill reports that **dependency paths require `/create_index` first** (and `/create_graph` when JSON traversal is needed) and lists **named** dependencies from the Issue prose only (no invented graph edges).
+If the user only analyzes Issue text and no index exists, the skill reports that **dependency paths require `/create-index` first** (and `/create-graph` when JSON traversal is needed) and lists **named** dependencies from the Issue prose only (no invented graph edges).
 
 ---
 
@@ -39,7 +39,7 @@ Optional machine output: `issue-intent.json` with an `anchors[]` list (`type`, `
 ## 3. Prerequisites
 
 ```text
-/create_index  (then /create_graph when graph JSON is needed)
+/create-index  (then /create-graph when graph JSON is needed)
         ↓
  persisted graph under .repository-analysis/graph/
         ↓
@@ -86,7 +86,7 @@ Every reported node must include a **`path[]`** from anchor to target (node ids 
 
 ### 5.1 What indexing stores (conceptual)
 
-During `/create_index` (and graph export via `/create_graph` when needed), the JIL adapter records **nodes** and **edges**, for example:
+During `/create-index` (and graph export via `/create-graph` when needed), the JIL adapter records **nodes** and **edges**, for example:
 
 ```text
 AUTOSYS_JOB     PAYMENT_RECON_EOD
@@ -176,7 +176,7 @@ mr-impact query-graph \
 
 `analyze-issue` may invoke this internally when anchors are non-empty and index freshness checks pass.
 
-**Freshness:** if index commit ≠ current `HEAD`, skill should recommend `/create_index` (and `/create_graph` if graph paths are needed) before trusting paths.
+**Freshness:** if index commit ≠ current `HEAD`, skill should recommend `/create-index` (and `/create-graph` if graph paths are needed) before trusting paths.
 
 ---
 

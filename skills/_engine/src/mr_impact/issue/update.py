@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 from pathlib import Path
+
+from mr_impact.json_io import load_json_dict, write_json
 
 _SECTION_SOURCES: tuple[tuple[str, str, str], ...] = (
     ("observed_implementation", "01-mr-analysis.md", "MR analysis"),
@@ -95,7 +96,7 @@ def run_update_issue(project_root: Path, *, run_dir: Path) -> dict:
     md_out = run_dir / "05-issue-update.md"
     md_out.write_text("\n".join(sections), encoding="utf-8")
     json_out = run_dir / "issue-update.json"
-    json_out.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    write_json(json_out, payload)
 
     return {
         "run_dir": str(run_dir),
@@ -113,10 +114,10 @@ def build_issue_update_payload(run_dir: Path, *, generated_at: str) -> dict:
         artifacts_present[filename] = path.is_file()
         sections[key] = _section_record(path, label)
 
-    changed = _load_json(run_dir / "changed-symbols.json")
-    runtime = _load_json(run_dir / "runtime-impact.json")
-    boundary = _load_json(run_dir / "boundary-hints.json")
-    mr_context = _load_json(run_dir / "mr-context.json")
+    changed = load_json_dict(run_dir / "changed-symbols.json")
+    runtime = load_json_dict(run_dir / "runtime-impact.json")
+    boundary = load_json_dict(run_dir / "boundary-hints.json")
+    mr_context = load_json_dict(run_dir / "mr-context.json")
 
     runtime_targets = runtime.get("targets", []) if isinstance(runtime, dict) else []
     primary_qa = runtime.get("primary_qa_targets", []) if isinstance(runtime, dict) else []
@@ -179,12 +180,3 @@ def _section_record(path: Path, label: str) -> dict:
         "excerpt": excerpt,
     }
 
-
-def _load_json(path: Path) -> dict | None:
-    if not path.is_file():
-        return None
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
-    return data if isinstance(data, dict) else None

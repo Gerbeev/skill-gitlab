@@ -42,19 +42,48 @@ class ValidateArtifactsTests(unittest.TestCase):
             run = Path(tmp)
             errors = validate_mr_run(run)
             self.assertGreater(len(errors), 0)
+            (run / "mr-context.json").write_text(
+                json.dumps(
+                    {"schema_version": 1, "generated_at": "t", "revision": "a..b"},
+                ),
+                encoding="utf-8",
+            )
+            (run / "changed-symbols.json").write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "revision": "a..b",
+                        "base_sha": "a",
+                        "head_sha": "b",
+                        "changed_files": [],
+                        "symbols_touched_by_diff": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            (run / "impact-graph.json").write_text(
+                json.dumps({"schema_version": 1, "edges": []}),
+                encoding="utf-8",
+            )
+            (run / "runtime-impact.json").write_text(
+                json.dumps({"schema_version": 2, "primary_qa_targets": [], "targets": []}),
+                encoding="utf-8",
+            )
+            (run / "test-impact.json").write_text(
+                json.dumps({"schema_version": 1, "scenarios": []}),
+                encoding="utf-8",
+            )
+            (run / "boundary-hints.json").write_text(
+                json.dumps({"hint_count": 0, "hints": []}),
+                encoding="utf-8",
+            )
             for name in (
-                "mr-context.json",
-                "changed-symbols.json",
-                "impact-graph.json",
-                "runtime-impact.json",
-                "test-impact.json",
                 "01-mr-analysis.md",
                 "02-change-context.md",
                 "03-impact-analysis.md",
                 "04-test-plan.md",
-                "boundary-hints.json",
             ):
-                (run / name).write_text("{}" if name.endswith(".json") else "# x\n", encoding="utf-8")
+                (run / name).write_text("# x\n", encoding="utf-8")
             self.assertEqual(validate_profile("mr-run", run), [])
 
 

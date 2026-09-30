@@ -4,7 +4,7 @@ Persistent artifacts live under `{project-root}/.repository-analysis/`. **Use on
 
 ## Index (`index/`)
 
-Present when `/create_index` (or `create-index`) has run successfully:
+Present when `/create-index` has run successfully:
 
 | File | Use |
 | --- | --- |
@@ -12,11 +12,11 @@ Present when `/create_index` (or `create-index`) has run successfully:
 | `index/repository-index.json` | Summary: adapters, languages, counts |
 | `index/repository-index.sqlite` | Full symbols/edges source of truth |
 
-If **only** `index/` is populated: prefer manifest + summary JSON; mention that graph JSON is not built yet and offer `/create_graph`.
+If **only** `index/` is populated: prefer manifest + summary JSON; mention that graph JSON is not built yet and offer `/create-graph`.
 
 ## Graph (`graph/`)
 
-Present when `/create_graph` (or `create-graph`) has run **after** index:
+Present when `/create-graph` has run **after** index:
 
 | File | Use |
 | --- | --- |
@@ -31,7 +31,7 @@ When **both** exist: read index manifest for freshness, then use `dependency-gra
 
 ## Neither
 
-If both are missing or empty: tell the user to run `/create_index` first; for graph-backed traversal also `/create_graph`. Do not invent graph edges.
+If both are missing or empty: tell the user to run `/create-index` first; for graph-backed traversal also `/create-graph`. Do not invent graph edges.
 
 ## Staleness
 

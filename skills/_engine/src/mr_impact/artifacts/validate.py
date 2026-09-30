@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
+
+from mr_impact.artifacts.contract import validate_mr_json_file
+from mr_impact.json_io import load_json, load_json_dict
 
 _TEMPLATE_HEADING = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 
@@ -54,16 +56,6 @@ def _template_headings(template_text: str) -> list[str]:
     return headings
 
 
-def _load_json(path: Path) -> dict | None:
-    if not path.is_file():
-        return None
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
-    return data if isinstance(data, dict) else None
-
-
 def _missing_files(run_dir: Path, names: tuple[str, ...]) -> list[str]:
     return [name for name in names if not (run_dir / name).is_file()]
 
@@ -79,7 +71,7 @@ def validate_issue_run(
     for name in missing:
         errors.append(f"missing file: {name}")
 
-    intent = _load_json(run_dir / "issue-intent.json")
+    intent = load_json_dict(run_dir / "issue-intent.json")
     if intent is not None:
         for key in ISSUE_INTENT_KEYS:
             if key not in intent:
@@ -116,10 +108,14 @@ def validate_mr_run(run_dir: Path) -> list[str]:
         path = run_dir / json_name
         if not path.is_file():
             continue
-        try:
-            json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
+        payload = load_json(path)
+        if payload is None:
             errors.append(f"{json_name} is not valid JSON")
+            continue
+        if not isinstance(payload, dict):
+            errors.append(f"{json_name} must be a JSON object")
+            continue
+        errors.extend(validate_mr_json_file(json_name, payload))
     return errors
 
 
@@ -129,7 +125,7 @@ def validate_update_run(run_dir: Path) -> list[str]:
     for name in _missing_files(run_dir, UPDATE_RUN_FILES):
         errors.append(f"missing file: {name}")
 
-    payload = _load_json(run_dir / "issue-update.json")
+    payload = load_json_dict(run_dir / "issue-update.json")
     if payload is not None:
         for key in ISSUE_UPDATE_KEYS:
             if key not in payload:

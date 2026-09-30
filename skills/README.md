@@ -98,7 +98,7 @@ For large skill edits, optional second pass: [tools/skill-validator.md](../tools
 
 Canonical full-change order (table and alternate entry points): [mr-impact-method/references/module.md](mr-impact-method/references/module.md). Step-by-step prompts: root [README.md](../README.md#usage-by-stage-workflow).
 
-1. `/analyze-issue` → 2. `/create_index` → 3. `/create_graph` (optional) → 4. `/analyze-mr` → 5. `/update-issue`
+1. `/analyze-issue` → 2. `/create-index` → 3. `/create-graph` (optional) → 4. `/analyze-mr` → 5. `/update-issue`
 
 ---
 

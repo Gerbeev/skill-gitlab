@@ -12,9 +12,9 @@
 
 | Skill | Blocker | Action |
 | --- | --- | --- |
-| `create-graph` | No `index/repository-index.sqlite` | Run `/create_index` first |
-| `analyze-mr` | No index SQLite | Run `/create_index` (engine errors without it) |
-| `analyze-mr` | No graph JSON | Optional — offer `/create_graph`; index-only still works |
+| `create-graph` | No `index/repository-index.sqlite` | Run `/create-index` first |
+| `analyze-mr` | No index SQLite | Run `/create-index` (engine errors without it) |
+| `analyze-mr` | No graph JSON | Optional — offer `/create-graph`; index-only still works |
 | `update-issue` | No `run/01-mr-analysis.md` | Run `/analyze-mr` first |
 
 `setup_check` prints hints on stderr when `render_skill.py` starts — relay them to the user.

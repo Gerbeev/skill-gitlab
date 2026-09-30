@@ -4,6 +4,8 @@ import os
 import subprocess
 from pathlib import Path
 
+from mr_impact.paths import ANALYSIS_DIR_NAME
+
 SKIP_DIR_NAMES = {
     ".git",
     ".svn",
@@ -13,7 +15,7 @@ SKIP_DIR_NAMES = {
     ".pytest_cache",
     ".venv",
     "venv",
-    ".repository-analysis",
+    ANALYSIS_DIR_NAME,
     "_mr-impact",
     "dist",
     "build",

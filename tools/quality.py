@@ -24,6 +24,7 @@ SETUP = ROOT / "skills" / "mr-impact-method" / "scripts" / "setup.py"
 ENGINE_DIR = ROOT / "skills" / "_engine"
 VALIDATE = ROOT / "tools" / "validate_skills.py"
 VALIDATE_REFS = ROOT / "tools" / "validate_file_refs.py"
+FIND_ORPHAN_REFS = ROOT / "tools" / "find_orphan_skill_references.py"
 RENDER_TESTS = ROOT / "skills" / "mr-impact-method" / "scripts" / "tests" / "test_render_skills.py"
 
 
@@ -104,6 +105,14 @@ def main() -> int:
     )
     if code:
         return code
+
+    if FIND_ORPHAN_REFS.is_file():
+        code = _run(
+            "Orphan skill reference check",
+            [sys.executable, str(FIND_ORPHAN_REFS), "--strict"],
+        )
+        if code:
+            return code
 
     code = _run("Render skill tests", [sys.executable, str(RENDER_TESTS)])
     if code:
