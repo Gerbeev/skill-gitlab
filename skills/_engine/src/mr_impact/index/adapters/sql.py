@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 
 from mr_impact.index.adapters.base import Adapter
+from mr_impact.index.sql_literals import sql_call_edges_from_literals
+from mr_impact.index.sql_symbols import plsql_routine_symbols
 from mr_impact.models import Edge, Symbol
 
 _CREATE = re.compile(
@@ -72,6 +74,8 @@ class SqlAdapter(Adapter):
             sym_kind = f"oracle_{kind.lower().replace(' ', '_')}"
             symbols.append(Symbol(name, sym_kind, line, line))
 
+        symbols.extend(plsql_routine_symbols(text))
+
         for match in _FROM_JOIN.finditer(text):
             line = text[: match.start()].count("\n") + 1
             _add_sql_edge(
@@ -107,5 +111,7 @@ class SqlAdapter(Adapter):
                 f"package member call in {rel_path}",
                 line,
             )
+
+        edges.extend(sql_call_edges_from_literals(rel_path, text, seen=seen))
 
         return symbols, edges, []

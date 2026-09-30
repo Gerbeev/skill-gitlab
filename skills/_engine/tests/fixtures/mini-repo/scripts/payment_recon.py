@@ -1,2 +1,2 @@
 def reconcile_payments():
-    return True
+    return PaymentService().Reconcile()

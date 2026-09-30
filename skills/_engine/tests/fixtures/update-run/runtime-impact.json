@@ -1,9 +1,25 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
+  "primary_qa_targets": [
+    {
+      "job": "JOB_A",
+      "box": "BOX_A",
+      "impact": "DIRECTLY_AFFECTED",
+      "seed": {"kind": "changed_file", "path": "scripts/a.py"},
+      "path": [{"node": "scripts/a.py", "type": "SCRIPT"}, {"node": "JOB_A", "type": "AUTOSYS_JOB"}],
+      "recommended_run": ["Run AutoSys job `JOB_A` in QA after deploy"],
+      "recommended_verify": ["Confirm JOB_A completes"],
+      "confidence": 0.9
+    }
+  ],
+  "unresolved": [],
   "targets": [
     {
       "job_or_process": "JOB_A",
       "why_affected": "script changed",
+      "suggested_run": "Run `JOB_A`",
+      "suggested_verify": "Confirm JOB_A completes",
+      "dependency_path": "scripts/a.py → JOB_A",
       "confidence": "high"
     }
   ]

@@ -117,8 +117,15 @@ class AnalyzeMrTests(unittest.TestCase):
                 self.assertTrue((run_dir / name).is_file(), msg=name)
 
             runtime = json.loads((run_dir / "runtime-impact.json").read_text(encoding="utf-8"))
-            jobs = {t["job_or_process"] for t in runtime.get("targets", [])}
+            self.assertEqual(runtime.get("schema_version"), 2)
+            primary = runtime.get("primary_qa_targets", [])
+            self.assertTrue(primary, msg="expected primary_qa_targets")
+            jobs = {t["job"] for t in primary}
             self.assertIn("PAYMENT_RECON_EOD", jobs)
+            recon = next(t for t in primary if t["job"] == "PAYMENT_RECON_EOD")
+            self.assertEqual(recon.get("box"), "EOD_BOX")
+            legacy = {t["job_or_process"] for t in runtime.get("targets", [])}
+            self.assertIn("PAYMENT_RECON_EOD", legacy)
 
             changed_symbols = json.loads(
                 (run_dir / "changed-symbols.json").read_text(encoding="utf-8")
@@ -156,7 +163,9 @@ class AnalyzeMrTests(unittest.TestCase):
             self.assertEqual(proc2.returncode, 0, msg=proc2.stderr)
             self.assertTrue((run_dir / "05-issue-update.md").is_file())
             issue_update = json.loads((run_dir / "issue-update.json").read_text(encoding="utf-8"))
-            self.assertEqual(issue_update.get("schema_version"), 1)
+            self.assertIn(issue_update.get("schema_version"), (1, 2))
+            self.assertIn("QA / runtime (nearest paths)", (run_dir / "05-issue-update.md").read_text(encoding="utf-8"))
+            self.assertGreaterEqual(issue_update.get("mr_summary", {}).get("primary_qa_target_count", 0), 1)
             self.assertFalse(issue_update.get("gitlab_apply"))
             self.assertTrue(issue_update.get("artifacts_present", {}).get("01-mr-analysis.md"))
             self.assertGreaterEqual(issue_update.get("mr_summary", {}).get("runtime_target_count", 0), 1)
@@ -198,6 +207,93 @@ class AnalyzeMrTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(proc4.returncode, 0, msg=proc4.stderr)
+
+
+    def test_analyze_mr_sql_file_to_job(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            shutil.copytree(FIXTURE, repo)
+            env_git = _git_env()
+            subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
+            subprocess.run(["git", "add", "."], cwd=repo, check=True, capture_output=True)
+            subprocess.run(
+                ["git", "commit", "-m", "init"],
+                cwd=repo,
+                check=True,
+                capture_output=True,
+                env=env_git,
+            )
+
+            env = dict(os.environ)
+            env["PYTHONPATH"] = str(SRC)
+
+            jil = repo / "jobs" / "payment.jil"
+            jil.write_text(
+                jil.read_text(encoding="utf-8")
+                + """
+insert_job: PAYMENT_SQL_EOD {
+  job_type: CMD
+  command: sqlplus user/pass @sql/pkg.sql
+  box_name: EOD_BOX
+}
+""",
+                encoding="utf-8",
+            )
+            subprocess.run(["git", "add", jil], cwd=repo, check=True, capture_output=True)
+            subprocess.run(
+                ["git", "commit", "-m", "add sql job"],
+                cwd=repo,
+                check=True,
+                capture_output=True,
+                env=env_git,
+            )
+
+            for cmd in ("create-index", "create-graph"):
+                proc = subprocess.run(
+                    [sys.executable, "-m", "mr_impact", cmd],
+                    cwd=repo,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(proc.returncode, 0, msg=f"{cmd}: {proc.stderr}")
+
+            sql = repo / "sql" / "pkg.sql"
+            text = sql.read_text(encoding="utf-8")
+            sql.write_text(text.replace("ledger_pkg.post_entry", "ledger_pkg.post_entry_v2"), encoding="utf-8")
+            subprocess.run(["git", "add", sql], cwd=repo, check=True, capture_output=True)
+            subprocess.run(
+                ["git", "commit", "-m", "change sql"],
+                cwd=repo,
+                check=True,
+                capture_output=True,
+                env=env_git,
+            )
+
+            run_dir = repo / ".repository-analysis" / "run"
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "mr_impact",
+                    "analyze-mr",
+                    "--revision",
+                    "HEAD~1..HEAD",
+                    "--run-dir",
+                    str(run_dir),
+                ],
+                cwd=repo,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 0, msg=proc.stderr)
+
+            runtime = json.loads((run_dir / "runtime-impact.json").read_text(encoding="utf-8"))
+            jobs = {t["job"] for t in runtime.get("primary_qa_targets", [])}
+            self.assertIn("PAYMENT_SQL_EOD", jobs)
 
 
 if __name__ == "__main__":

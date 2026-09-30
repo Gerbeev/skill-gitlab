@@ -13,7 +13,7 @@ Work proceeds **one plan item at a time**. Before each item, the implementer sta
 | Index + graph | Shipped (`create-index`, `create-graph`) |
 | Analyze Issue | Shipped (baseline) |
 | Analyze MR | MVP + `test_analyze_mr.py` |
-| Update Issue | Preview + chained test; **nearest QA paths** spec only ([nearest-runtime-impact-paths.md](reference/nearest-runtime-impact-paths.md)) |
+| Update Issue | Preview + nearest QA paths ([nearest-runtime-impact-paths.md](reference/nearest-runtime-impact-paths.md)) |
 | CI | `.github/workflows/engine.yml` |
 
 ## Phase 0 — Contract
@@ -45,11 +45,11 @@ Work proceeds **one plan item at a time**. Before each item, the implementer sta
 
 Spec: [reference/nearest-runtime-impact-paths.md](reference/nearest-runtime-impact-paths.md).
 
-- [ ] Diff-accurate seeds → upstream traversal (SQL/PL/SQL → app → JIL), not broad string BFS
-- [ ] `runtime-impact.json` `primary_qa_targets` + `path[]` (job + box)
-- [ ] `04-test-plan.md` / `03-impact-analysis.md` driven by primary targets only
-- [ ] `update-issue`: `## QA / runtime (nearest paths)` + `issue-update.json` schema v2
-- [ ] Engine tests: PL/SQL line change → single job chain (fixture repo)
+- [x] Diff-accurate seeds → upstream traversal (SQL/PL/SQL → app → JIL), not broad string BFS
+- [x] `runtime-impact.json` `primary_qa_targets` + `path[]` (job + box)
+- [x] `04-test-plan.md` / `03-impact-analysis.md` driven by primary targets only
+- [x] `update-issue`: `## QA / runtime (nearest paths)` + `issue-update.json` schema v2
+- [x] Engine tests: SQL file change → `PAYMENT_SQL_EOD` chain (fixture repo)
 
 ## Phase 3 — Index quality
 
@@ -57,6 +57,7 @@ Spec: [reference/nearest-runtime-impact-paths.md](reference/nearest-runtime-impa
 - [x] C#: dedicated adapter (csproj refs + tree-sitter or regex fallback) + tests
 - [x] SQL: `CALL`/`EXEC` and `pkg.member(` → `sql_call` edges + tests
 - [x] JIL: `condition` / `depends` job edges + fixture tests
+- [x] PL/SQL routine symbols with line spans; `sql_call` from string literals; upstream `calls` edges for nearest paths
 
 ## Phase 4 — Analyze Issue
 

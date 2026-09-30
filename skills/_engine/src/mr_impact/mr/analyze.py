@@ -11,6 +11,7 @@ from mr_impact.git.diff import (
     symbols_touched_by_diff,
 )
 from mr_impact.git.revision import parse_revision_range, resolve_ref
+from mr_impact.graph.nearest_runtime import compute_primary_qa_targets
 from mr_impact.graph.query import impact_from_seeds
 from mr_impact.index.pipeline import analysis_paths, reindex_changed_paths
 from mr_impact.index.scanner import git_head
@@ -26,6 +27,40 @@ def _write_json(path: Path, payload: dict | list) -> None:
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def _filter_linked_job_symbols(
+    symbols: list[dict],
+    changed_paths: set[str],
+    edges: list[dict],
+) -> list[dict]:
+    """Drop linked JIL jobs that are not tied to changed script/SQL paths."""
+    from mr_impact.graph.nearest_runtime import jobs_for_jil_script
+    normalized_changed = {p.replace("\\", "/") for p in changed_paths}
+    kept: list[dict] = []
+    for sym in symbols:
+        if sym.get("diff_match") != "linked_file" or sym.get("kind") != "autosys_job":
+            kept.append(sym)
+            continue
+        jil = str(sym.get("path", "")).replace("\\", "/")
+        job = str(sym.get("name", ""))
+        script_hint: str | None = None
+        for cp in normalized_changed:
+            for edge in edges:
+                if edge.get("from_file") != jil or edge.get("type") != "script_path":
+                    continue
+                target = str(edge.get("target", "")).replace("\\", "/")
+                if target == cp or target.endswith("/" + cp) or cp.endswith("/" + target):
+                    script_hint = cp
+                    break
+            if script_hint:
+                break
+        if not script_hint:
+            continue
+        matching_jobs = jobs_for_jil_script(edges, symbols, jil, script_hint)
+        if job in matching_jobs:
+            kept.append(sym)
+    return kept
+
+
 def _issue_snippet(issue_dir: Path | None) -> str | None:
     if issue_dir is None or not issue_dir.is_dir():
         return None
@@ -35,37 +70,6 @@ def _issue_snippet(issue_dir: Path | None) -> str | None:
             text = candidate.read_text(encoding="utf-8", errors="replace").strip()
             return text[:4000] + ("…" if len(text) > 4000 else "")
     return None
-
-
-def _runtime_targets(changed_paths: set[str], edges: list[dict], symbols: list[dict]) -> list[dict]:
-    """Jobs/processes that reference changed script paths (JIL script_path edges)."""
-    normalized = {p.replace("\\", "/") for p in changed_paths}
-    targets: list[dict] = []
-    jobs_by_file: dict[str, list[str]] = {}
-    for sym in symbols:
-        if sym.get("kind") == "autosys_job":
-            jobs_by_file.setdefault(sym["path"], []).append(sym["name"])
-
-    for edge in edges:
-        if edge.get("type") != "script_path":
-            continue
-        target = str(edge.get("target", "")).replace("\\", "/")
-        if not any(target == cp or target.endswith("/" + cp) or cp.endswith(target) for cp in normalized):
-            continue
-        from_file = str(edge.get("from_file", ""))
-        job_names = jobs_by_file.get(from_file, [])
-        for job in job_names or ["(job unknown)"]:
-            targets.append(
-                {
-                    "job_or_process": job,
-                    "why_affected": f"command references changed path `{target}`",
-                    "suggested_run": f"Verify AutoSys job `{job}` after deploy",
-                    "suggested_verify": f"Confirm `{target}` behavior in lower environment",
-                    "dependency_path": f"{from_file} → {target}",
-                    "confidence": edge.get("confidence", "medium"),
-                }
-            )
-    return targets
 
 
 def run_analyze_mr(
@@ -109,6 +113,7 @@ def run_analyze_mr(
 
     store = IndexStore(db_path)
     all_edges = store.iter_graph_edges()
+    all_symbols = store.all_symbols()
     normalized_changed = {p.replace("\\", "/") for p in changed_paths}
     jil_sources: set[str] = set()
     for edge in all_edges:
@@ -128,6 +133,7 @@ def run_analyze_mr(
         linked_paths=jil_sources,
         line_ranges=diff_line_ranges,
     )
+    symbols = _filter_linked_job_symbols(symbols, changed_paths, all_edges)
     store.close()
 
     seeds: set[str] = set()
@@ -138,7 +144,12 @@ def run_analyze_mr(
         seeds.add(sym["name"])
 
     impact_edges = impact_from_seeds(project_root, seeds)
-    runtime = _runtime_targets(changed_paths, all_edges, symbols)
+    primary_qa, runtime, unresolved = compute_primary_qa_targets(
+        all_edges,
+        all_symbols,
+        symbols,
+        changed_paths,
+    )
     boundary = load_boundary_catalog(project_root)
     boundary_hints = match_boundary_hints(
         boundary,
@@ -177,9 +188,13 @@ def run_analyze_mr(
     _write_json(run_dir / "impact-graph.json", impact_graph_payload)
 
     runtime_payload = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "primary_qa_targets": primary_qa,
+        "unresolved": unresolved,
         "targets": runtime,
-        "unresolved_note": None if runtime else "No JIL script_path links to changed files in index.",
+        "unresolved_note": None
+        if runtime
+        else "No nearest AutoSys job path from MR seeds in index.",
     }
     _write_json(run_dir / "runtime-impact.json", runtime_payload)
 
@@ -273,28 +288,75 @@ def run_analyze_mr(
     impact_lines = [
         "# Impact analysis",
         "",
-        f"- **Bounded edges:** {len(impact_edges)}",
+        f"- **Primary QA targets:** {len(primary_qa)}",
+        f"- **Bounded graph edges (diagnostic):** {len(impact_edges)}",
         "",
-        "## Graph (truncated)",
+        "## Nearest runtime paths",
         "",
     ]
-    for edge in impact_edges[:40]:
+    if primary_qa:
+        for item in primary_qa:
+            job = item.get("job", "?")
+            box = item.get("box")
+            path_nodes = " → ".join(h.get("node", "?") for h in item.get("path", []))
+            impact_lines.append(f"### {job}")
+            if box:
+                impact_lines.append(f"- **Box:** `{box}`")
+            impact_lines.append(f"- **Path:** {path_nodes}")
+            impact_lines.append(f"- **Confidence:** {item.get('confidence')}")
+            impact_lines.append("")
+    else:
+        impact_lines.append("_No primary AutoSys job resolved; see unresolved in runtime-impact.json._")
+        impact_lines.append("")
+    if unresolved:
+        impact_lines.append("## Unresolved seeds")
+        impact_lines.append("")
+        for item in unresolved[:10]:
+            seed = item.get("seed", {})
+            impact_lines.append(
+                f"- `{seed.get('path', '?')}` / `{seed.get('name', '')}` — {item.get('reason')}"
+            )
+        impact_lines.append("")
+    impact_lines.extend(
+        [
+            "## Graph (diagnostic, truncated)",
+            "",
+        ]
+    )
+    for edge in impact_edges[:20]:
         impact_lines.append(
             f"- `{edge.get('from_file')}` → `{edge.get('target')}` "
             f"({edge.get('type')}, {edge.get('confidence')})"
         )
-    if len(impact_edges) > 40:
-        impact_lines.append(f"- … and {len(impact_edges) - 40} more")
+    if len(impact_edges) > 20:
+        impact_lines.append(f"- … and {len(impact_edges) - 20} more")
     impact_lines.extend(format_boundary_markdown(boundary_hints))
     (run_dir / "03-impact-analysis.md").write_text("\n".join(impact_lines) + "\n", encoding="utf-8")
 
     plan_lines = [
         "# Test / runtime plan",
         "",
-        "Concrete targets from indexed JIL/script links (not generic boilerplate).",
+        "Primary AutoSys jobs from nearest indexed paths (not full batch inventory).",
         "",
     ]
-    if runtime:
+    if primary_qa:
+        for item in primary_qa:
+            job = item.get("job", "?")
+            plan_lines.extend(
+                [
+                    f"## {job}",
+                    "",
+                ]
+            )
+            if item.get("box"):
+                plan_lines.append(f"- **Box:** `{item['box']}`")
+            for run in item.get("recommended_run", []):
+                plan_lines.append(f"- **Run:** {run}")
+            for verify in item.get("recommended_verify", []):
+                plan_lines.append(f"- **Verify:** {verify}")
+            path_nodes = " → ".join(h.get("node", "?") for h in item.get("path", []))
+            plan_lines.extend([f"- **Path:** {path_nodes}", ""])
+    elif runtime:
         for t in runtime:
             plan_lines.extend(
                 [
@@ -316,6 +378,7 @@ def run_analyze_mr(
         "changed_files": len(changed),
         "impact_edges": len(impact_edges),
         "runtime_targets": len(runtime),
+        "primary_qa_targets": len(primary_qa),
         "index_partial_refresh": partial_refresh is not None,
         "index_stale": index_stale,
         "boundary_hint_count": boundary_hints.get("hint_count", 0),

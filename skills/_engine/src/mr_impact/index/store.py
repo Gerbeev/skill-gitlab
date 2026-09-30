@@ -169,6 +169,21 @@ class IndexStore:
             for r in rows
         ]
 
+    def all_symbols(self) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT path, name, kind, line_start, line_end FROM symbols ORDER BY path, line_start"
+        ).fetchall()
+        return [
+            {
+                "path": r[0],
+                "name": r[1],
+                "kind": r[2],
+                "line_start": r[3],
+                "line_end": r[4],
+            }
+            for r in rows
+        ]
+
     def symbols_for_paths(self, paths: set[str]) -> list[dict]:
         if not paths:
             return []

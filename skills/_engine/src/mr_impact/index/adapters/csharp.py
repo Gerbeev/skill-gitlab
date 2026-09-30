@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from mr_impact.index.adapters.base import Adapter
+from mr_impact.index.sql_literals import sql_call_edges_from_literals
 from mr_impact.models import Edge, Symbol
 from mr_impact.readers import claims, read as reader_read
 
@@ -92,10 +93,15 @@ class CSharpAdapter(Adapter):
         for name, start, end in defines:
             symbols.append(Symbol(name, "csharp_definition", start, end))
 
+        seen_sql: set[str] = set()
         for name, kind, start, end in calls:
-            edge_type = "csharp_using" if kind == "import" else kind
+            if kind == "import":
+                edge_type = "csharp_using"
+            else:
+                edge_type = "calls"
             conf = _CALL_CONFIDENCE.get(kind, "low")
             edges.append(Edge(name, edge_type, conf, rel_path, start, end))
+        edges.extend(sql_call_edges_from_literals(rel_path, text, seen=seen_sql))
 
         notes = [f"unresolved: {u}" for u in unresolved] if unresolved else []
         notes.append("reader: tree-sitter")
@@ -145,6 +151,9 @@ class CSharpAdapter(Adapter):
                     line,
                 )
             )
+
+        seen_sql: set[str] = set()
+        edges.extend(sql_call_edges_from_literals(rel_path, text, seen=seen_sql))
 
         notes = ["reader: regex-fallback (install tree-sitter-c-sharp for richer C# edges)"]
         return symbols, edges, notes

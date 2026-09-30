@@ -14,6 +14,35 @@ _SECTION_SOURCES: tuple[tuple[str, str, str], ...] = (
 _EXCERPT_LIMIT = 2000
 
 
+def _format_nearest_paths_markdown(primary: list[dict], unresolved: list[dict]) -> str:
+    lines: list[str] = []
+    if primary:
+        for item in primary:
+            job = item.get("job", "?")
+            lines.append(f"### {job}")
+            if item.get("box"):
+                lines.append(f"- **Box:** `{item['box']}`")
+            path_nodes = " → ".join(h.get("node", "?") for h in item.get("path", []))
+            lines.append(f"- **Path:** {path_nodes}")
+            for run in item.get("recommended_run", []):
+                lines.append(f"- **Run:** {run}")
+            for verify in item.get("recommended_verify", []):
+                lines.append(f"- **Verify:** {verify}")
+            lines.append("")
+    else:
+        lines.append("_No primary AutoSys job path in runtime-impact.json._")
+        lines.append("")
+    if unresolved:
+        lines.append("#### Unresolved")
+        lines.append("")
+        for item in unresolved[:5]:
+            seed = item.get("seed", {})
+            label = seed.get("name") or seed.get("path") or "?"
+            lines.append(f"- `{label}`: {item.get('reason', 'unresolved')}")
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
 def run_update_issue(project_root: Path, *, run_dir: Path) -> dict:
     """Build local Issue update preview from MR run artifacts."""
     project_root = project_root.resolve()
@@ -43,6 +72,10 @@ def run_update_issue(project_root: Path, *, run_dir: Path) -> dict:
         "## Impact summary",
         "",
         payload["sections"]["impact_summary"]["excerpt"],
+        "",
+        "## QA / runtime (nearest paths)",
+        "",
+        payload.get("nearest_paths_markdown", "_No runtime-impact.json._"),
         "",
         "## Validation / runtime",
         "",
@@ -86,12 +119,16 @@ def build_issue_update_payload(run_dir: Path, *, generated_at: str) -> dict:
     mr_context = _load_json(run_dir / "mr-context.json")
 
     runtime_targets = runtime.get("targets", []) if isinstance(runtime, dict) else []
+    primary_qa = runtime.get("primary_qa_targets", []) if isinstance(runtime, dict) else []
+    unresolved = runtime.get("unresolved", []) if isinstance(runtime, dict) else []
     boundary_hints = boundary.get("hints", []) if isinstance(boundary, dict) else []
+    schema_version = 2 if primary_qa or (runtime and runtime.get("schema_version") == 2) else 1
 
     return {
-        "schema_version": 1,
+        "schema_version": schema_version,
         "generated_at": generated_at,
         "gitlab_apply": False,
+        "nearest_paths_markdown": _format_nearest_paths_markdown(primary_qa, unresolved),
         "artifacts_present": {
             **artifacts_present,
             "mr-context.json": (run_dir / "mr-context.json").is_file(),
@@ -107,12 +144,15 @@ def build_issue_update_payload(run_dir: Path, *, generated_at: str) -> dict:
             "changed_file_count": len(changed.get("changed_files", [])) if changed else None,
             "symbols_touched_count": len(changed.get("symbols_touched_by_diff", [])) if changed else None,
             "runtime_target_count": len(runtime_targets),
+            "primary_qa_target_count": len(primary_qa),
             "boundary_hint_count": boundary.get("hint_count", len(boundary_hints)) if boundary else 0,
             "index_stale": changed.get("index_stale") if changed else None,
             "index_partial_refresh": changed.get("index_partial_refresh") if changed else None,
         },
         "mr_context": mr_context,
         "runtime_targets": runtime_targets,
+        "primary_qa_targets": primary_qa,
+        "unresolved": unresolved,
         "boundary_hints": boundary_hints,
         "limitations": [
             "Preview assembled from local run artifacts only.",

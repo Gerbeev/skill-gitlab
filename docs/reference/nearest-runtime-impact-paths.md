@@ -1,6 +1,6 @@
 # Nearest runtime impact paths (QA-facing dependency chains)
 
-**Status:** Product requirement — **not fully implemented** in the engine today. This document is the authoritative specification for how `/analyze-mr` and `/update-issue` must use the index and graph. Implementation work follows this contract.
+**Status:** Implemented in `mr_impact` (Phase 2b). Gaps: deep .NET↔SQL caller edges depend on index quality; `impact-graph.json` remains diagnostic-only. This document is the authoritative specification for how `/analyze-mr` and `/update-issue` must use the index and graph. Implementation work follows this contract.
 
 **Audience:** QA, release engineers, and developers attaching validation scope to GitLab Issues.
 
@@ -205,12 +205,13 @@ Until the engine emits this shape, skills must **not** claim full nearest-path a
 
 ---
 
-## 9. Current implementation gap
+## 9. Remaining gaps
 
-| Area | Today | Target |
-| --- | --- | --- |
-| MR graph | `impact_from_seeds` ≈ broad BFS over string matches | Typed upstream walk from diff seeds |
-| Runtime targets | `script_path` on **changed file paths** only | Full chain from SQL/.NET to JIL |
-| `update-issue` | Excerpts of `01`–`04` markdown | Dedicated nearest-path section + structured JSON |
+| Area | Limitation |
+| --- | --- |
+| `impact-graph.json` | Still populated via bounded `impact_from_seeds` (diagnostic); do not use for QA job lists |
+| Cross-layer chains | Index emits `sql_call` from SQL source + string literals (`.cs`/`.py`), `calls` from C#/Python readers; exotic drivers may still yield `unresolved` |
+| Direct SQL job | If JIL command points at `sql/pkg.sql`, that job wins as shortest path over app stack — expected |
+| Org scale | Cross-repo jobs need boundary catalog + local path prefix |
 
-Track delivery in [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md) (Phase 2b).
+Delivered in engine Phase 2b — see [DEVELOPMENT_PLAN.md](../DEVELOPMENT_PLAN.md).

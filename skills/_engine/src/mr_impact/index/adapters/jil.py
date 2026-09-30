@@ -109,7 +109,8 @@ class JilAdapter(Adapter):
         for match in _COMMAND.finditer(text):
             cmd = match.group(1).strip()
             line = text[: match.start()].count("\n") + 1
-            for path_match in _PATH_IN_TEXT.finditer(cmd):
+            cmd_scan = cmd.replace("@", " ")
+            for path_match in _PATH_IN_TEXT.finditer(cmd_scan):
                 target = path_match.group(1).strip("'\"")
                 edges.append(
                     Edge(

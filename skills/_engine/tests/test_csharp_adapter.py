@@ -27,8 +27,8 @@ class CSharpAdapterTests(unittest.TestCase):
         self.assertIn("PaymentService", names)
         self.assertIn("Payments", names)
 
-        using_edges = {e.target for e in edges if e.edge_type == "csharp_using"}
-        self.assertIn("Acme.Ledger.Client", using_edges)
+        sql_edges = {e.target for e in edges if e.edge_type == "sql_call"}
+        self.assertIn("payment_pkg.run", sql_edges)
 
         if claims(path) is None:
             self.assertTrue(any("regex-fallback" in n for n in notes))

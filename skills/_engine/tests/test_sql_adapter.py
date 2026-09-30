@@ -19,6 +19,10 @@ class SqlAdapterTests(unittest.TestCase):
         self.assertIn(("sql_call", "audit_pkg.log_run"), by_type_target)
         self.assertIn(("sql_call", "payment_staging.flush"), by_type_target)
 
+        routines = [s for s in symbols if s.name == "payment_pkg.run"]
+        self.assertTrue(routines, msg="expected payment_pkg.run routine symbol")
+        self.assertGreaterEqual(routines[0].line_end, routines[0].line_start + 2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -93,7 +93,7 @@ Optional: read `boundary-catalog.json`; optional GitLab MR metadata via MCP/toke
 ### Update Issue
 
 - Always local preview first (`05-issue-update.md`).
-- Preview must carry **nearest** QA dependency chains (primary AutoSys job + box) from MR analysis — see [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md). **Not yet fully implemented**; current preview excerpts MR markdown and coarse `runtime-impact.json`.
+- Preview must carry **nearest** QA dependency chains (primary AutoSys job + box) from MR analysis — see [nearest-runtime-impact-paths.md](nearest-runtime-impact-paths.md).
 - GitLab write only with explicit user confirmation via MCP or token ([gitlab-integration.md](gitlab-integration.md)).
 
 ### Skill packages (BMAD-shaped)
