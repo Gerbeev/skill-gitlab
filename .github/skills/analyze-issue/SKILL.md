@@ -15,5 +15,7 @@ If `_mr-impact/scripts/render_skill.py` is missing, run setup once:
 python "{project-root}/skills/mr-impact-method/scripts/setup.py" --project-root "{project-root}"
 ```
 
+Then run the render command again.
+
 - On success, read and follow the one absolute `workflow.md` path printed to stdout.
-- On any other failure (including Python or missing `jinja2`), report the command output and **HALT**. Do not run workflow sources directly without rendering.
+- On any other failure (including Python or missing `jinja2`), report the command output and **HALT**. Do not run workflow sources from `skills/` or `.github/skills/` directly without rendering.

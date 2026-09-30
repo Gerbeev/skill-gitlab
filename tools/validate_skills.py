@@ -4,7 +4,8 @@
 # ///
 """Deterministic validator for MR Impact Copilot skills.
 
-Adapted from BMAD tools/validate_skills.py (SKILL-01–07, PATH-02, SEQ-02, TPL-01, WORKFLOW-01).
+Adapted from BMAD tools/validate_skills.py (SKILL-01–08, PATH-02, SEQ-02, TPL-01, WORKFLOW-01–02).
+Inference pass: tools/skill-validator.md.
 
 Usage:
   python tools/validate_skills.py
@@ -278,6 +279,29 @@ def validate_skill(skill_dir: str) -> list[dict]:
                 "SKILL.md",
                 "SKILL.md does not reference render_skill.py.",
                 "Add the standard python render_skill.py dispatch block.",
+            )
+        )
+
+    trimmed = skill_content.lstrip()
+    body_start = -1
+    if trimmed.startswith("---"):
+        end_idx = trimmed.find(f"{os.linesep}---{os.linesep}", 3)
+        if end_idx != -1:
+            body_start = end_idx + len(os.linesep) + 3
+        elif trimmed.endswith(f"{os.linesep}---"):
+            body_start = len(trimmed)
+    else:
+        body_start = 0
+    body = trimmed[body_start:].strip() if body_start >= 0 else ""
+    if body == "":
+        findings.append(
+            _finding(
+                "SKILL-07",
+                "SKILL.md Must Have Body Content",
+                "HIGH",
+                "SKILL.md",
+                "SKILL.md has no content after frontmatter.",
+                "Add the render_skill dispatch block after the closing ---.",
             )
         )
 

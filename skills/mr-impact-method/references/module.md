@@ -1,23 +1,35 @@
 # MR Impact method module
 
-Hub for Copilot skills (not a slash command).
+Hub for Copilot skills (not a slash command). **How to author or change skills:** [skills/README.md](../../README.md).
 
-## Recommended pipeline
+Narrative prompts and examples: root [README.md](../../../README.md#usage-by-stage-workflow).
 
-| Order | Skill | Output |
-| --- | --- | --- |
-| 1 | `create-index` | `.repository-analysis/index/` |
-| 2 | `create-graph` | `.repository-analysis/graph/` (requires index sqlite) |
-| 3 | `analyze-issue` | `run/` issue artifacts |
-| 4 | `analyze-mr` | `run/` MR artifacts |
-| 5 | `update-issue` | `run/` update preview |
+## Full change pipeline (canonical order)
 
-Downstream skills read **whatever exists** in `index/` and `graph/` (see `references/analysis-inputs.md`).
+Use this sequence for a feature from requirements through MR to Issue update. Each step can also be run alone.
+
+| Step | Copilot command | Needs | Primary output |
+| --- | --- | --- | --- |
+| 1 | `/analyze-issue` | Input folder or GitLab Issue text; index **optional** (richer anchors if index/graph exist) | `.repository-analysis/run/` — `00-issue-analysis.md`, `01-generated-issue.md`, `issue-intent.json` |
+| 2 | `/create_index` | Git repo at project root | `.repository-analysis/index/` |
+| 3 | `/create_graph` | Index SQLite from step 2 | `.repository-analysis/graph/` (optional; recommended for graph traversal) |
+| 4 | `/analyze-mr` | **Index required**; graph optional; Issue files in `run/` optional | `run/` — MR reports + JSON per [engine-contract](../../../docs/reference/engine-contract.md) |
+| 5 | `/update-issue` | MR artifacts in `run/` | `05-issue-update.md`, `issue-update.json` (GitLab apply opt-in) |
+
+After review, clean ephemeral `run/` unless the user keeps artifacts ([run-cleanup.md](run-cleanup.md)).
+
+## Other entry points
+
+| Goal | Commands |
+| --- | --- |
+| Requirements / Issue only | `/analyze-issue` alone (no index) |
+| Refresh structural model | `/create_index` → optional `/create_graph` |
+| MR impact only | `/create_index` if missing, then `/analyze-mr` (optional Issue context from `run/` or GitLab) |
+
+Downstream skills read **whatever exists** in `index/` and `graph/` ([analysis-inputs.md](analysis-inputs.md)).
 
 ## Setup
 
 ```bash
-python -m pip install -r skills/mr-impact-method/scripts/requirements.txt
-python skills/mr-impact-method/scripts/setup.py --project-root .
-python tools/validate_skills.py --strict
+python tools/quality.py
 ```

@@ -118,7 +118,7 @@ Issue template (canonical): **`.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLAT
 
 ## Usage by stage (workflow)
 
-Typical order for a full change. Each step is also usable alone.
+**Canonical order** (same as [skills/mr-impact-method/references/module.md](skills/mr-impact-method/references/module.md#full-change-pipeline-canonical-order)): analyze Issue → index → graph (optional) → analyze MR → update Issue. Each step is also usable alone.
 
 ### Stage 1 — Analyze Issue (`/analyze-issue`)
 
@@ -266,10 +266,10 @@ See [skills/_engine/README.md](skills/_engine/README.md).
 Optional tree-sitter grammars: `skills/_engine/src/mr_impact/readers/requirements.txt`.  
 **Without uv:** [docs/reference/python-setup.md](docs/reference/python-setup.md).
 
-Validate skill layout (after setup):
+Before push (mirrors CI):
 
 ```bash
-python tools/validate_skills.py --strict
+python tools/quality.py
 ```
 
 ---

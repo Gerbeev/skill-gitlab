@@ -22,9 +22,11 @@
 
 Reference example (not shipped as product code): **`examples/BMAD-METHOD`** — thin Copilot `SKILL.md` → `render_skill` → workflow steps.
 
-Deterministic skill checks: `python tools/validate_skills.py --strict` (from repo root after setup).
+Local CI mirror: `python tools/quality.py` (from repo root). Optional skill review: [tools/skill-validator.md](../tools/skill-validator.md).
 
 ## Layout
+
+Authoring skills: **[skills/README.md](../skills/README.md)**.
 
 ```text
 skills/                   # Skill sources (edit here)

@@ -1,13 +1,21 @@
 ---
 name: analyze-mr
-description: 'Analyze a Merge Request with deterministic diff, impact graph, and runtime/job QA scope. Use when reviewing an MR or branch and the repository index is available or should be built first.'
+description: 'Analyze a Merge Request with deterministic diff, impact graph, and runtime/job QA scope. Use when reviewing an MR or branch; run create-index first if no index exists. Skip for typo-only or config-only edits with no impact analysis needed.'
 ---
 
-Run the following command exactly once:
+Run the following command exactly once without changing the current working directory. Replace `{project-root}` with the absolute path to the project root and `{skill-root}` with the absolute path to this skill's directory:
 
 ```bash
 python "{project-root}/_mr-impact/scripts/render_skill.py" --project-root "{project-root}" --skill "{skill-root}"
 ```
 
-- On success, follow the printed `workflow.md` path.
-- On failure, **HALT**.
+If `_mr-impact/scripts/render_skill.py` is missing, run setup once:
+
+```bash
+python "{project-root}/skills/mr-impact-method/scripts/setup.py" --project-root "{project-root}"
+```
+
+Then run the render command again.
+
+- On success, read and follow the one absolute `workflow.md` path printed to stdout.
+- On any other failure (including Python or missing `jinja2`), report the command output and **HALT**. Do not run workflow sources from `skills/` or `.github/skills/` directly without rendering.
