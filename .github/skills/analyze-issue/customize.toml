@@ -11,6 +11,7 @@ persistent_facts = [
   "file:{project-root}/docs/reference/gitlab-integration.md",
   "file:{project-root}/docs/reference/issue-anchored-graph-traversal.md",
   "Use references/analysis-inputs.md: optional index/ and graph/ — never require both.",
+  "Classify statements per references/evidence-rules.md; never promote inference to Acceptance Criteria without evidence.",
 ]
 
 on_complete = """

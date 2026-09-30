@@ -16,3 +16,6 @@ __pycache__/
 
 # Optional tree-sitter grammars installed beside engine readers
 **/_lib/
+
+# Local editor vault (not part of the product)
+.obsidian/

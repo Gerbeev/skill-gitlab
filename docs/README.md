@@ -6,6 +6,8 @@
 
 | Document | Purpose |
 | --- | --- |
+| [REFACTORING_PLAN.md](REFACTORING_PLAN.md) | Структурный рефакторинг репозитория (архитектура, фазы) |
+| [DELETION_CANDIDATES.md](DELETION_CANDIDATES.md) | Файлы и каталоги, которые можно удалить (с уровнем уверенности) |
 | [DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md) | Roadmap — phases and delivery status |
 | [reference/engine-contract.md](reference/engine-contract.md) | **Canonical CLI** and run artifacts (skills must match) |
 | [reference/GLOSSARY.md](reference/GLOSSARY.md) | Terms: skills, engine, indexing, artifacts |
@@ -15,6 +17,7 @@
 | [reference/TASK_STATEMENT.md](reference/TASK_STATEMENT.md) | Full product specification |
 | [reference/V1_SCOPE.md](reference/V1_SCOPE.md) | **MVP delivery boundary** |
 | [reference/MVP_TASK_IMPROVEMENTS.md](reference/MVP_TASK_IMPROVEMENTS.md) | Design rationale (BMAD patterns, V1 simplifications) |
+| [reference/bmad-method-reference.md](reference/bmad-method-reference.md) | Зачем `examples/BMAD-METHOD` и паритет с нашими скиллами |
 | [reference/python-setup.md](reference/python-setup.md) | Python 3.11+ without `uv` |
 | [reference/gitlab-integration.md](reference/gitlab-integration.md) | GitLab token + MCP (read / opt-in write) |
 | [reference/boundary-catalog.example.json](reference/boundary-catalog.example.json) | Optional cross-repo boundary catalog seed |
