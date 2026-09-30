@@ -1,6 +1,6 @@
 ---
 name: analyze-issue
-description: 'Analyze Issue source material and generate 00-issue-analysis.md plus 01-generated-issue.md from the skill-root GITLAB_ISSUE_TEMPLATE.md. Use when preparing or refining a GitLab Issue from requirements.'
+description: 'Analyze Issue source material and generate 00-issue-analysis.md plus 01-generated-issue.md from the skill-root GITLAB_ISSUE_TEMPLATE.md. Use when preparing or refining a GitLab Issue from requirements. Skip when only MR impact is needed and no Issue draft is required.'
 ---
 
 Run the following command exactly once without changing the current working directory. Replace `{project-root}` with the absolute path to the project root and `{skill-root}` with the absolute path to this skill's directory:

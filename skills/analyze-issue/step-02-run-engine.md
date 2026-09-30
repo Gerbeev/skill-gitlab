@@ -9,7 +9,13 @@ python "{project-root}/_mr-impact/scripts/run_engine.py" --project-root "{projec
 ```
 
 - Non-zero exit: show stderr and **HALT**. Do not fabricate outputs.
-- Zero exit: verify `00-issue-analysis.md` and `01-generated-issue.md` exist under the run dir.
+- Zero exit: run validation once:
+
+```bash
+python "{project-root}/_mr-impact/scripts/run_engine.py" --project-root "{project-root}" -- validate-artifacts --profile issue-run --run-dir "{project-root}/.repository-analysis/run" --template "{skill-root}/GITLAB_ISSUE_TEMPLATE.md"
+```
+
+Non-zero validation → **HALT** (report stderr; do not invent Issue sections).
 
 ## NEXT
 

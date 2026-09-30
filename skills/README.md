@@ -108,3 +108,4 @@ Canonical full-change order (table and alternate entry points): [mr-impact-metho
 - [analysis-inputs.md](mr-impact-method/references/analysis-inputs.md) — index vs graph consumption
 - [run-cleanup.md](mr-impact-method/references/run-cleanup.md) — ephemeral `run/` directory
 - BMAD reference pattern: `examples/BMAD-METHOD/skills/bmad-code-review/` (thin `SKILL.md`, rendered workflow)
+- On-demand agent help: `mr-impact-method/help/` (slash commands, artifacts, blockers)

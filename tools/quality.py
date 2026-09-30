@@ -23,6 +23,7 @@ METHOD_REQ = ROOT / "skills" / "mr-impact-method" / "scripts" / "requirements.tx
 SETUP = ROOT / "skills" / "mr-impact-method" / "scripts" / "setup.py"
 ENGINE_DIR = ROOT / "skills" / "_engine"
 VALIDATE = ROOT / "tools" / "validate_skills.py"
+VALIDATE_REFS = ROOT / "tools" / "validate_file_refs.py"
 RENDER_TESTS = ROOT / "skills" / "mr-impact-method" / "scripts" / "tests" / "test_render_skills.py"
 
 
@@ -97,9 +98,31 @@ def main() -> int:
     if code:
         return code
 
+    code = _run(
+        "Validate skill file references",
+        [sys.executable, str(VALIDATE_REFS), "--strict"],
+    )
+    if code:
+        return code
+
     code = _run("Render skill tests", [sys.executable, str(RENDER_TESTS)])
     if code:
         return code
+
+    tools_tests = ROOT / "tools" / "tests"
+    if tools_tests.is_dir():
+        code = _run(
+            "Tools unit tests",
+            [sys.executable, "-m", "unittest", "discover", "-s", str(tools_tests), "-v"],
+        )
+        if code:
+            return code
+
+    setup_check_tests = ROOT / "skills" / "mr-impact-method" / "scripts" / "tests" / "test_setup_check.py"
+    if setup_check_tests.is_file():
+        code = _run("Setup check tests", [sys.executable, str(setup_check_tests)])
+        if code:
+            return code
 
     print("\nquality: all checks passed", flush=True)
     return 0

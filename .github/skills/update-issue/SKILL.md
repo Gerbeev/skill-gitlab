@@ -1,6 +1,6 @@
 ---
 name: update-issue
-description: 'Prepare 05-issue-update.md after MR analysis. Use when syncing Issue text with analysis results; GitLab apply only via token or MCP after explicit user confirmation.'
+description: 'Prepare 05-issue-update.md after MR analysis. Use when syncing Issue text with analysis results; GitLab apply only via token or MCP after explicit user confirmation. Skip when run/01-mr-analysis.md is missing or Issue sync is not needed.'
 ---
 
 Run the following command exactly once without changing the current working directory. Replace `{project-root}` with the absolute path to the project root and `{skill-root}` with the absolute path to this skill's directory:

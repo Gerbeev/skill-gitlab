@@ -8,12 +8,13 @@ Add `--issue-dir` when Issue artifacts are available.
 
 Non-zero exit → **HALT**.
 
-Verify engine outputs exist under `run/`:
+After zero exit, run validation once:
 
-- Markdown: `01-mr-analysis.md` … `04-test-plan.md`
-- JSON: `mr-context.json`, `changed-symbols.json`, `impact-graph.json`, `runtime-impact.json`, `test-impact.json`, `boundary-hints.json` (last may be empty hints if no catalog)
+```bash
+python "{project-root}/_mr-impact/scripts/run_engine.py" --project-root "{project-root}" -- validate-artifacts --profile mr-run --run-dir "{project-root}/.repository-analysis/run"
+```
 
-Canonical list: `{project-root}/docs/reference/engine-contract.md` (Analyze MR section).
+Non-zero validation → **HALT**. Canonical artifact list: `{project-root}/docs/reference/engine-contract.md` (Analyze MR section).
 
 ## NEXT
 

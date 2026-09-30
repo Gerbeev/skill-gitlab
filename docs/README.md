@@ -24,6 +24,8 @@ Reference example (not shipped as product code): **`examples/BMAD-METHOD`** — 
 
 Local CI mirror: `python tools/quality.py` (from repo root). Optional skill review: [tools/skill-validator.md](../tools/skill-validator.md).
 
+Agent routing / blockers (not loaded on every run): [skills/mr-impact-method/help/](../skills/mr-impact-method/help/).
+
 ## Layout
 
 Authoring skills: **[skills/README.md](../skills/README.md)**.

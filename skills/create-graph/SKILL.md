@@ -1,6 +1,6 @@
 ---
 name: create-graph
-description: 'Export dependency graph JSON from the existing index SQLite into .repository-analysis/graph/. Use when traversal needs dependency-graph.json after create-index.'
+description: 'Export dependency graph JSON from the existing index SQLite into .repository-analysis/graph/. Use when traversal needs dependency-graph.json after create-index. Skip when graph-manifest git_head already matches index-manifest and JSON export is unchanged.'
 ---
 
 Run the following command exactly once without changing the current working directory. Replace `{project-root}` with the absolute path to the project root and `{skill-root}` with the absolute path to this skill's directory:

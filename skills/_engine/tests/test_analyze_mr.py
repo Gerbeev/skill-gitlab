@@ -161,6 +161,44 @@ class AnalyzeMrTests(unittest.TestCase):
             self.assertTrue(issue_update.get("artifacts_present", {}).get("01-mr-analysis.md"))
             self.assertGreaterEqual(issue_update.get("mr_summary", {}).get("runtime_target_count", 0), 1)
 
+            proc3 = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "mr_impact",
+                    "validate-artifacts",
+                    "--profile",
+                    "mr-run",
+                    "--run-dir",
+                    str(run_dir),
+                ],
+                cwd=repo,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(proc3.returncode, 0, msg=proc3.stderr)
+
+            proc4 = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "mr_impact",
+                    "validate-artifacts",
+                    "--profile",
+                    "update-run",
+                    "--run-dir",
+                    str(run_dir),
+                ],
+                cwd=repo,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(proc4.returncode, 0, msg=proc4.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

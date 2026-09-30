@@ -28,6 +28,14 @@ After review, clean ephemeral `run/` unless the user keeps artifacts ([run-clean
 
 Downstream skills read **whatever exists** in `index/` and `graph/` ([analysis-inputs.md](analysis-inputs.md)).
 
+## Agent help (on demand)
+
+| Doc | When to load |
+| --- | --- |
+| [help/slash-commands.md](help/slash-commands.md) | User unsure which slash command or pipeline order |
+| [help/analysis-artifacts.md](help/analysis-artifacts.md) | Questions about `index/`, `graph/`, or `run/` |
+| [help/common-blockers.md](help/common-blockers.md) | Setup, missing index/MR artifacts, engine HALT |
+
 ## Setup
 
 ```bash

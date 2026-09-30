@@ -6,7 +6,13 @@ python "{project-root}/_mr-impact/scripts/run_engine.py" --project-root "{projec
 
 Non-zero exit → **HALT**.
 
-Verify `05-issue-update.md` and `issue-update.json` exist.
+After zero exit:
+
+```bash
+python "{project-root}/_mr-impact/scripts/run_engine.py" --project-root "{project-root}" -- validate-artifacts --profile update-run --run-dir "{project-root}/.repository-analysis/run"
+```
+
+Non-zero validation → **HALT**.
 
 ## NEXT
 

@@ -133,5 +133,5 @@ If `--json` reports zero findings for a rule, treat that rule as satisfied. Re-c
 ## Related
 
 - Authoring: [skills/README.md](../skills/README.md)
-- CI: `python tools/quality.py`
+- CI: `python tools/quality.py` (includes `validate_file_refs.py --strict`)
 - BMAD full catalog: `examples/BMAD-METHOD/tools/skill-validator.md` (reference only)

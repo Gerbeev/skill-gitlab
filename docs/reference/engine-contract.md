@@ -13,6 +13,7 @@ All commands use the **Git repository root** as the current working directory un
 | `analyze-issue` | implemented | Issue prep: `00-issue-analysis.md`, `01-generated-issue.md` |
 | `analyze-mr` | implemented | MR impact from Git revision + index; if index `git_head` ≠ repo HEAD, re-indexes MR changed paths only |
 | `update-issue` | implemented | Preview `05-issue-update.md` from MR run artifacts |
+| `validate-artifacts` | implemented | Deterministic check of run-dir outputs (no GitLab) |
 | `index-repository` | deprecated | Runs `create-index` then `create-graph` |
 
 ### Flags
@@ -23,8 +24,11 @@ All commands use the **Git repository root** as the current working directory un
 | `analyze-issue` | `--input-dir`, `--template`, `--run-dir` (required) |
 | `analyze-mr` | `--revision` (required, `base..head`), `--run-dir` (required), `--issue-dir` (optional), `--analysis-root` (optional) |
 | `update-issue` | `--run-dir` (required) |
+| `validate-artifacts` | `--profile` (`issue-run` \| `mr-run` \| `update-run`), `--run-dir` (required), `--template` (required for `issue-run` when checking template sections) |
 
 Default run directory: `.repository-analysis/run` (gitignored).
+
+Skills run `validate-artifacts` after a successful engine command and **HALT** on non-zero exit before presenting results.
 
 ## Persistent analysis tree
 

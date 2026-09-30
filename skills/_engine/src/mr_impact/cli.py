@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from mr_impact.artifacts.validate import validate_profile
 from mr_impact.index.pipeline import run_create_graph, run_create_index, run_deep_index
 from mr_impact.issue.analyze import run_analyze_issue
 from mr_impact.issue.update import run_update_issue
@@ -34,6 +35,18 @@ def main(argv: list[str] | None = None) -> int:
 
     upd = sub.add_parser("update-issue", help="Produce 05-issue-update.md from MR run artifacts")
     upd.add_argument("--run-dir", type=Path, required=True)
+
+    val = sub.add_parser(
+        "validate-artifacts",
+        help="Check run-dir outputs match engine contract (no LLM)",
+    )
+    val.add_argument(
+        "--profile",
+        choices=("issue-run", "mr-run", "update-run"),
+        required=True,
+    )
+    val.add_argument("--run-dir", type=Path, required=True)
+    val.add_argument("--template", type=Path, default=None)
 
     legacy = sub.add_parser("index-repository", help="Deprecated: use create-index and create-graph")
     legacy.add_argument("--mode", choices=("deep", "boundary"), default="deep")
@@ -98,6 +111,19 @@ def main(argv: list[str] | None = None) -> int:
             sys.stdout.write(
                 f"update-issue: {summary['preview']}\n  {summary['issue_update_json']}\n"
             )
+            return 0
+
+        if args.command == "validate-artifacts":
+            errors = validate_profile(
+                args.profile,
+                args.run_dir,
+                template_path=args.template,
+            )
+            if errors:
+                for item in errors:
+                    sys.stderr.write(f"validate-artifacts: {item}\n")
+                return 1
+            sys.stdout.write(f"validate-artifacts: ok ({args.profile})\n")
             return 0
 
         if args.command == "index-repository":
