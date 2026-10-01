@@ -1,9 +1,10 @@
 # MR Impact Copilot Skills
 
-Five VS Code **GitHub Copilot** project skills for Issue analysis, index/graph build, Merge Request impact, and Issue updates—one shared engine, BMAD-style workflows.
+Six VS Code **GitHub Copilot** project skills for Issue workspace setup, Issue analysis, index/graph build, Merge Request impact, and Issue updates—one shared engine, BMAD-style workflows.
 
 | Slash command | Purpose |
 | --- | --- |
+| `/initialize-repo` | Per-feature **issue folder**: templates + links (GitLab Issue/MR, branch) so downstream skills read one place |
 | `/analyze-issue` | Analysis report + GitLab Issue body from template |
 | `/create-index` | DEEP structural index → `.repository-analysis/index/` |
 | `/create-graph` | Dependency graph JSON → `.repository-analysis/graph/` (after index) |
@@ -23,6 +24,7 @@ Five VS Code **GitHub Copilot** project skills for Issue analysis, index/graph b
 - [How a skill run works (BMAD pattern)](#how-a-skill-run-works-bmad-pattern)
 - [Where outputs go](#where-outputs-go)
 - [Usage by stage (workflow)](#usage-by-stage-workflow)
+  - [Stage 0 — Initialize issue workspace](#stage-0--initialize-issue-workspace-initialize-repo)
   - [Stage 1 — Analyze Issue](#stage-1--analyze-issue-analyze-issue)
   - [Stage 2a — Create index](#stage-2a--create-index-create-index)
   - [Stage 2b — Create graph](#stage-2b--create-graph-create-graph)
@@ -68,7 +70,8 @@ After setup, Copilot only needs:
 ```text
 <your-project-root>/
 ├── .github/
-│   └── skills/                    ← Copilot project skills (5 folders)
+│   └── skills/                    ← Copilot project skills (6 folders)
+│       ├── initialize-repo/
 │       ├── analyze-issue/
 │       ├── create-index/
 │       ├── create-graph/
@@ -94,7 +97,7 @@ On Windows, if `python` is missing, use `py -3.11` instead of `python`.
 Setup will:
 
 - Create **`_mr-impact/config.toml`**, bundle **`_mr-impact/engine/`** (Python `mr_impact` package), and install scripts under **`_mr-impact/scripts/`**.
-- **Sync** the five Copilot skills → **`.github/skills/`** (see `mr-impact-method/bmod.toml`).
+- **Sync** Copilot skills → **`.github/skills/`** (see `mr-impact-method/bmod.toml`). The set includes **`initialize-repo`** once that skill is added under `skills/`; until then, setup syncs the other five.
 - Optionally seed **`.repository-analysis/catalog/boundary-catalog.json`** from the example file.
 
 Check status:
@@ -108,7 +111,7 @@ Re-run setup after you change files under `skills/` so `.github/skills/` stays i
 ### Verify Copilot sees the skills
 
 1. Reload VS Code window if skills were just added.
-2. Open Copilot Chat → type `/` and confirm: `analyze-issue`, `create-index`, `create-graph`, `analyze-mr`, `update-issue`.
+2. Open Copilot Chat → type `/` and confirm: `initialize-repo`, `analyze-issue`, `create-index`, `create-graph`, `analyze-mr`, `update-issue`.
 
 ---
 
@@ -134,32 +137,67 @@ If `render_skill` is missing, run **setup** again.
 | `.repository-analysis/index/` | **Persistent** structural index (`/create-index`). |
 | `.repository-analysis/graph/` | **Persistent** graph export (`/create-graph`). Downstream skills use whichever exists. |
 | `.repository-analysis/catalog/` | Optional boundary catalog (cross-repo hints). |
+| `issues/<slug>/` (recommended) | **Per-feature issue workspace** created by `/initialize-repo` — user-edited notes, requirements, GitLab links; other skills take `issue:` / `input:` from here |
 
 Issue template (canonical): **`.github/skills/analyze-issue/GITLAB_ISSUE_TEMPLATE.md`**
+
+Per-feature workspace files (planned convention, filled by you after `/initialize-repo`): see [Stage 0](#stage-0--initialize-issue-workspace-initialize-repo).
 
 ---
 
 ## Usage by stage (workflow)
 
-**Canonical order** (same as [skills/mr-impact-method/references/module.md](skills/mr-impact-method/references/module.md#full-change-pipeline-canonical-order)): analyze Issue → index → graph (optional) → analyze MR → update Issue. Each step is also usable alone.
+**Canonical order** (same as [skills/mr-impact-method/references/module.md](skills/mr-impact-method/references/module.md#full-change-pipeline-canonical-order)): initialize issue workspace → analyze Issue → index → graph (optional) → analyze MR → update Issue. Each step is also usable alone.
+
+### Stage 0 — Initialize issue workspace (`/initialize-repo`)
+
+**When:** You start a new feature or change and want one folder in the repo that holds everything the pipeline needs—links to GitLab Issue/MR, branch names, and empty templates for you to fill before running other skills.
+
+**What it does (planned):** Create or refresh an **issue workspace** under a stable path (recommended: `issues/<slug>/`). Copy or generate starter files (notes, requirements, manifest with GitLab URLs and ids) so `/analyze-issue`, `/analyze-mr`, and `/update-issue` can read the same `issue:` / `input:` root instead of ad-hoc `requirements/` layouts. The skill source is not wired in `skills/` yet—only this README entry; full workflow steps will follow in a later change.
+
+**Prompt (parameters only, illustrative):**
+
+```text
+/initialize-repo
+slug: my-feature
+gitlab issue: https://gitlab.example.com/group/project/-/issues/42
+```
+
+Optional: `path: ./issues/my-feature/` if you already chose the folder name.
+
+**You get (illustrative layout):**
+
+```text
+issues/my-feature/
+├── issue-workspace.md      # links: GitLab Issue/MR, default branch, revision hints
+├── notes.md                # your context (template)
+└── requirements.md         # what should be achieved (template)
+```
+
+Commit this folder if your team tracks requirements in Git; keep secrets and tokens out of it.
+
+---
 
 ### Stage 1 — Analyze Issue (`/analyze-issue`)
 
-**When:** You have notes, requirements, or an existing Issue text; you want analysis + a template-shaped GitLab description.
+**When:** The issue workspace exists (Stage 0) or you already have notes; you want analysis + a template-shaped GitLab description.
 
-**Input layout (optional):**
+**Input:** Prefer the folder from `/initialize-repo`:
 
 ```text
-requirements/my-feature/
+issues/my-feature/
+├── issue-workspace.md
 ├── notes.md
 └── requirements.md
 ```
+
+Legacy ad-hoc layout (`requirements/<name>/` with `notes.md` + `requirements.md`) still works until skills standardize on the issue workspace.
 
 **Prompt (parameters only):**
 
 ```text
 /analyze-issue
-input: ./requirements/my-feature/
+input: ./issues/my-feature/
 ```
 
 Or, for an existing GitLab Issue: add `issue: <project>#<iid>` or point at fetched text under `run/gitlab-input/` ([gitlab-integration](docs/reference/gitlab-integration.md)).
@@ -247,8 +285,11 @@ Say `apply: yes` (or confirm in chat) only when you want GitLab write; see [gitl
 Run stages in order; each line is a separate chat message (or one message with the same parameter style):
 
 ```text
+/initialize-repo
+slug: my-feature
+
 /analyze-issue
-input: ./requirements/my-feature/
+input: ./issues/my-feature/
 
 /create-index
 
@@ -300,7 +341,8 @@ python tools/quality.py
 
 | Problem | Action |
 | --- | --- |
-| Slash commands missing | Run setup; confirm `.github/skills/` has **five** folders; reload VS Code. |
+| Slash commands missing | Run setup; confirm `.github/skills/` has the expected skill folders (six with `initialize-repo`); reload VS Code. |
+| Issue folder missing / skills ask for `input:` | Run `/initialize-repo` first, then point `input:` or `issue:` at `issues/<slug>/`. |
 | `render_skill.py` not found | Run setup from project root. |
 | Stale skill text in Copilot | Edit under `skills/`, re-run setup, reload window. |
 | MR analysis empty / no jobs | Run `/create-index` (and `/create-graph` if needed); check JIL/scripts indexed. |
